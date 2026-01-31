@@ -1,0 +1,6 @@
+        # print("count_in = ", count_in)
+        # print("relative error of T = ", RE_T)
+        # print("relative error of t = ", RE_t)
+        # print("relative error of x = ", RE_x)
+        # print("relative error of y = ", RE_y)
+        # print("relative error of fl = ", RE_fl)
