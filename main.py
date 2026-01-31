@@ -103,6 +103,7 @@ def demo_batch_study():
 def test_hc_Tt_raw():
     """
     """
+    logging.info("测试 hc_Tt_raw")
     # 1. 初值设置（读取已保存的算例）
     # 读取CSV文件
     df = pd.read_csv('R2_1200_2e-5_raw.csv')
@@ -160,6 +161,7 @@ def test_hc_Tt_raw():
         y_solved = CubicSpline(sol_b.x, sol_b.y.T)
         y_plot = y_solved(z_guess).T
 
+    logging.info("计算完成 hc_Tt_raw")
     # 结果绘图
     y_plot = np.append([T_new, t_new], y_plot, axis=0)
     plt.figure(figsize=(12, 8))
@@ -181,14 +183,15 @@ def test_hc_Tt_raw():
 
     # 保存结果
     df = pd.DataFrame(np.vstack((z_guess, y_plot)).T, columns=['z'] + variables)
-    df.to_csv('test_Tt_hc_raw.csv', index=False)
+    df.to_csv('test_Tt_hc_raw_R2_1200.csv', index=False)
 
 def test_hc_xy_raw():
     """
     """
+    logging.info("测试 hc_xy_raw")
     # 1. 初值设置（读取已保存的算例）
     # 读取CSV文件
-    df = pd.read_csv('my_design_0.0-20.0m_1e-5_raw.csv')
+    df = pd.read_csv('R2_1200_2e-5_raw.csv')
     # 按索引取行
     z_guess = df['z'].values   # 高度（物理的）
     T = df['T'].values
@@ -205,7 +208,7 @@ def test_hc_xy_raw():
     N = len(z_guess) - 1
 
     params = load_parameters("my_design")   # 调用已保存的参数
-    model = NormalizedFurnaceModel(params)
+    model = HCFurnaceModel(params)
 
     x_new, y_new = model.xy_hc(z_guess, T, t, fs, fl, x, y, w, p)
 
@@ -243,6 +246,7 @@ def test_hc_xy_raw():
         y_solved = CubicSpline(sol_b.x, sol_b.y.T)
         y_plot = y_solved(z_guess).T
 
+    logging.info("计算完成 hc_xy_raw")
     # 结果绘图
     y_plot = np.concatenate((y_plot[[0, 1, 2, 3], :], [x_new, y_new], y_plot[[4, 5, 6], :]), axis=0)
     plt.figure(figsize=(12, 8))
@@ -264,17 +268,17 @@ def test_hc_xy_raw():
 
     # 保存结果
     df = pd.DataFrame(np.vstack((z_guess, y_plot)).T, columns=['z'] + variables)
-    df.to_csv('test_xy_hc_raw.csv', index=False)
+    # df.to_csv('test_xy_hc_raw_R2_1200.csv', index=False)
 
 def test_hc_5n4():
     """
     双循环
     """
     params = load_parameters("my_design")   # 调用已保存的参数
-    params2 = quick_modify(params, 
-                         case_name="my_design",
-                         initial_mesh=100)
-    model = NormalizedFurnaceModel(params2)
+    # params2 = quick_modify(params, 
+    #                      case_name="my_design",
+    #                      initial_mesh=100)
+    model = HCFurnaceModel(params)
 
     # 1. 初值设置（分段线性）
     H0 = model.params.H0
@@ -465,7 +469,7 @@ def test_hc_5n4():
 
     # 保存结果
     df = pd.DataFrame(np.vstack((z_guess, y_plot)).T, columns=['z'] + variables)
-    df.to_csv('test_hc_5n4_1e-3_linear_N=100.csv', index=False)   
+    # df.to_csv('test_hc_5n4_1e-3_linear_N=100.csv', index=False)   
 
 def main():
     """主函数"""
@@ -483,9 +487,9 @@ def main():
 
     # 热量流法求解测试
     # test_hc_Tt_raw()
-    # test_hc_xy_raw()
+    test_hc_xy_raw()
 
-    test_hc_5n4()
+    # test_hc_5n4()
 
     print("\n" + "=" * 50)
     print("主程序结束")

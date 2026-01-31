@@ -419,11 +419,6 @@ class FurnaceModel:
         R4 = self.ReactionRate_4(z,T,t,fl,x,y,w,p)
         R6 = self.ReactionRate_6(z,T,t,x,y,w,p)
         R7 = self.ReactionRate_7(T,x,y,w,p)
-        # weight = smooth_heaviside(t-1200,k=1)
-        # R21 = R2
-        # R22 = R2 + R1+R4+R7
-        # R2 = (1-weight)*R21 + weight*R22
-        # R2 = np.where(t<1200, R2, R2 + R1+R4+R7)
 
         G1 = F/22.4 * (1+K1)/K1  # G1 (float): capacity flow of x. [kmol / hr]
         G2 = F/22.4 * (1+K1)/K1  # G2 (float): capacity flow of y. [kmol / hr]
@@ -492,11 +487,6 @@ class FurnaceModel:
             R4 = self.ReactionRate_4(z,T,t,fl,x,y,w,p)
             R6 = self.ReactionRate_6(z,T,t,x,y,w,p)
             R7 = self.ReactionRate_7(T,x,y,w,p)
-            # weight = smooth_heaviside(t-1200,k=1)
-            # R21 = R2
-            # R22 = R2 + R1+R4+R7
-            # R2 = (1-weight)*R21 + weight*R22
-            # R2 = np.where(t<1200, R2, R2 + R1+R4+R7)
 
             G1 = F/22.4 * (1+K1)/K1  # G1 (float): capacity flow of x. [kmol / hr]
             G2 = F/22.4 * (1+K1)/K1  # G2 (float): capacity flow of y. [kmol / hr]
@@ -564,11 +554,6 @@ class FurnaceModel:
         R4 = self.ReactionRate_4(z,T,t,fl,x,y,w,p)
         R6 = self.ReactionRate_6(z,T,t,x,y,w,p)
         R7 = self.ReactionRate_7(T,x,y,w,p)
-        # weight = smooth_heaviside(t-1200,k=1)
-        # R21 = R2
-        # R22 = R2 + R1+R4+R7
-        # R2 = (1-weight)*R21 + weight*R22
-        # R2 = np.where(t<1200, R2, R2 + R1+R4+R7)
 
         a_list = 22.4*Az*kappa_5/F
         b_list = 22.4*Az*(w*R2 + w*R4 - kappa_5*self.params.F_0*(self.params.w_0+self.params.v_0)/F/(1+K) + (w-1)*R6 - R7) / F
@@ -609,11 +594,6 @@ class FurnaceModel:
             R4 = self.ReactionRate_4(z,T,t,fl,x,y,w,p)
             R6 = self.ReactionRate_6(z,T,t,x,y,w,p)
             R7 = self.ReactionRate_7(T,x,y,w,p)
-            # weight = smooth_heaviside(t-1200,k=1)
-            # R21 = R2
-            # R22 = R2 + R1+R4+R7
-            # R2 = (1-weight)*R21 + weight*R22
-            # R2 = np.where(t<1200, R2, R2 + R1+R4+R7)
 
             a_list = 22.4*Az*kappa_5/F
             b_list = 22.4*Az*(w*R2 + w*R4 - kappa_5*self.params.F_0*(self.params.w_0+self.params.v_0)/F/(1+K) + (w-1)*R6 - R7) / F
@@ -801,11 +781,6 @@ class FurnaceModel:
         R5 = self.ReactionRate_5(z,T,t,fs,x,y,w,p) # R5 (float): 1/3 Fe2O3 + H2 = 2/3 Fe + H2O reaction rate per unit volume of bed. [kmol H2 / m3 bed * hr]
         R6 = self.ReactionRate_6(z,T,t,x,y,w,p) # R6 (float): C + H2O = CO + H2 reaction rate per unit volume of bed. [kmol H2O / m3 bed * hr]
         R7 = self.ReactionRate_7(T,x,y,w,p) # R7 (float): C + H2O = CO + H2 reaction rate per unit volume of bed. [kmol H2 / m3 bed * hr]
-        # weight = smooth_heaviside(t-1200,k=1)
-        # R21 = R2
-        # R22 = R2 + R1+R4+R7
-        # R2 = (1-weight)*R21 + weight*R22
-        # R2 = np.where(t<1200, R2, R2 + R1+R4+R7)
 
         dd = -Az * ((16+12*0)*R1 + 12*R2 + 44*R4 + 16*R5 + 12*R6) / self.params.Fs
 
@@ -1030,11 +1005,10 @@ class FurnaceModel:
         R6 = self.ReactionRate_6(z,T,t,x,y,w,p) # R6 (float): C + H2O = CO + H2 reaction rate per unit volume of bed. [kmol H2O / m3 bed * hr]
         R7 = self.ReactionRate_7(T,x,y,w,p) # R7 (float): CO + H2O = CO2 + H2 reaction rate per unit volume of bed. [kmol H2 / m3 bed * hr]
 
-        # weight = smooth_heaviside(t-1200,k=1)
-        # R21 = R2
-        # R22 = R2 + R1+R4+R7
-        # R2 = (1-weight)*R21 + weight*R22
-        # R2 = np.where(t<1200, R2, R2 + R1+R4+R7)
+        weight = smooth_heaviside(t-1200,k=1)
+        R21 = R2
+        R22 = R2 + R1+R4+R7
+        R2 = (1-weight)*R21 + weight*R22
 
         weight = smooth_heaviside(t-1673,k=5)
         dd1 = 22.4 * Az * ((1+0*x)*R1 + (x-2)*R2 + x*R4 + (x-1)*R6 + R7) / F
@@ -1083,11 +1057,10 @@ class FurnaceModel:
         R6 = self.ReactionRate_6(z,T,t,x,y,w,p) # R6 (float): C + H2O = CO + H2 reaction rate per unit volume of bed. [kmol H2O / m3 bed * hr]
         R7 = self.ReactionRate_7(T,x,y,w,p) # R7 (float): CO + H2O = CO2 + H2 reaction rate per unit volume of bed. [kmol H2 / m3 bed * hr]
 
-        # weight = smooth_heaviside(t-1200,k=1)
-        # R21 = R2
-        # R22 = R2 + R1+R4+R7
-        # R2 = (1-weight)*R21 + weight*R22
-        # R2 = np.where(t<1200, R2, R2 + R1+R4+R7)
+        weight = smooth_heaviside(t-1200,k=1)
+        R21 = R2
+        R22 = R2 + R1+R4+R7
+        R2 = (1-weight)*R21 + weight*R22
 
         weight = smooth_heaviside(t-1673,k=5)
         dd1 = 22.4 * Az * ((0*y-1)*R1 + (y+1)*R2 + (y-1)*R4 + y*R6 - R7) / F
@@ -1137,11 +1110,10 @@ class FurnaceModel:
         R6 = self.ReactionRate_6(z,T,t,x,y,w,p) # R6 (float): C + H2O = CO + H2 reaction rate per unit volume of bed. [kmol H2O / m3 bed * hr]
         R7 = self.ReactionRate_7(T,x,y,w,p) # R7 (float): CO + H2O = CO2 + H2 reaction rate per unit volume of bed. [kmol H2 / m3 bed * hr]
        
-        # weight = smooth_heaviside(t-1200,k=1)
-        # R21 = R2
-        # R22 = R2 + R1+R4+R7
-        # R2 = (1-weight)*R21 + weight*R22
-        # R2 = np.where(t<1200, R2, R2 + R1+R4+R7)
+        weight = smooth_heaviside(t-1200,k=1)
+        R21 = R2
+        R22 = R2 + R1+R4+R7
+        R2 = (1-weight)*R21 + weight*R22
 
         weight = smooth_heaviside(t-1673,k=5)
         dd1 = 22.4 * Az * (0*w*R1 + w*R2 + w*R4 + R5 + (w-1)*R6 - R7) / F
@@ -1193,7 +1165,6 @@ class FurnaceModel:
         R21 = R2
         R22 = R2 + R1+R4+R7
         R2 = (1-weight)*R21 + weight*R22
-        # R2 = np.where(t<1200, R2, R2 + R1+R4+R7)
 
         weight = smooth_heaviside(t-1673,k=5)
         dd1 = -Az * ((16+12*0)*R1 + 12*R2 + 44*R4 + 16*R5 + 12*R6) / self.params.Fs
@@ -1266,12 +1237,11 @@ class FurnaceModel:
         R5 = self.ReactionRate_5(z,T,t,fs,x,y,w,p) # R5 (float): 1/3 Fe2O3 + H2 = 2/3 Fe + H2O reaction rate per unit volume of bed. [kmol H2 / m3 bed * hr]
         R6 = self.ReactionRate_6(z,T,t,x,y,w,p) # R6 (float): C + H2O = CO + H2 reaction rate per unit volume of bed. [kmol H2O / m3 bed * hr]
 
-        # R7 = self.ReactionRate_7(T,x,y,w,p) # R7 (float): CO + H2O = CO2 + H2 reaction rate per unit volume of bed. [kmol H2 / m3 bed * hr]
-        # weight = smooth_heaviside(t-1200,k=1)
-        # R21 = R2
-        # R22 = R2 + R1+R4+R7
-        # R2 = (1-weight)*R21 + weight*R22
-        # R2 = np.where(t<1200, R2, R2 + R1+R4+R7)
+        R7 = self.ReactionRate_7(T,x,y,w,p) # R7 (float): CO + H2O = CO2 + H2 reaction rate per unit volume of bed. [kmol H2 / m3 bed * hr]
+        weight = smooth_heaviside(t-1200,k=1)
+        R21 = R2
+        R22 = R2 + R1+R4+R7
+        R2 = (1-weight)*R21 + weight*R22
 
         weight = smooth_heaviside(t-1673,k=5)
         q1 = (1.2507*0 + 0.7261*1)*R1 + 0.5246*R2 + 1.9768*R4 + 0.7143*R5 + 0.5364*R6
@@ -1373,11 +1343,10 @@ class FurnaceModel:
         R6 = self.ReactionRate_6(z,T,t,x,y,w,p) # R6 (float): C + H2O = CO + H2 reaction rate per unit volume of bed. [kmol H2O / m3 bed * hr]
         R7 = self.ReactionRate_7(T,x,y,w,p) # R7 (float): CO + H2O = CO2 + H2 reaction rate per unit volume of bed. [kmol H2 / m3 bed * hr]
 
-        # weight = smooth_heaviside(t-1200,k=1)
-        # R21 = R2
-        # R22 = R2 + R1+R4+R7
-        # R2 = (1-weight)*R21 + weight*R22
-        # R2 = np.where(t<1200, R2, R2 + R1+R4+R7)
+        weight = smooth_heaviside(t-1200,k=1)
+        R21 = R2
+        R22 = R2 + R1+R4+R7
+        R2 = (1-weight)*R21 + weight*R22
 
         weight = smooth_heaviside(t-1673,k=2)
         q1 = -H1*R1 -H2*R2 -H4*R4 -H5*R5 -H6*R6 -H7*R7
@@ -1409,12 +1378,11 @@ class FurnaceModel:
         R5 = self.ReactionRate_5(z,T,t,fs,x,y,w,p) # R5 (float): 1/3 Fe2O3 + H2 = 2/3 Fe + H2O reaction rate per unit volume of bed. [kmol H2 / m3 bed * hr]
         R6 = self.ReactionRate_6(z,T,t,x,y,w,p) # R6 (float): C + H2O = CO + H2 reaction rate per unit volume of bed. [kmol H2O / m3 bed * hr]
 
-        # R7 = self.ReactionRate_7(T,x,y,w,p) # R7 (float): CO + H2O = CO2 + H2 reaction rate per unit volume of bed. [kmol H2 / m3 bed * hr]
-        # weight = smooth_heaviside(t-1200,k=1)
-        # R21 = R2
-        # R22 = R2 + R1+R4+R7
-        # R2 = (1-weight)*R21 + weight*R22
-        # R2 = np.where(t<1200, R2, R2 + R1+R4+R7)
+        R7 = self.ReactionRate_7(T,x,y,w,p) # R7 (float): CO + H2O = CO2 + H2 reaction rate per unit volume of bed. [kmol H2 / m3 bed * hr]
+        weight = smooth_heaviside(t-1200,k=1)
+        R21 = R2
+        R22 = R2 + R1+R4+R7
+        R2 = (1-weight)*R21 + weight*R22
 
         weight = smooth_heaviside(t-1673,k=5)
         q1 = 16*R1 + 12*R2 + 44*R4 + 16*R5 + 12*R6
@@ -2378,9 +2346,6 @@ class HCFurnaceModel(FurnaceModel):
 
         KA = 6 * (1-self.params.epsilon) * h_p * Az  / self.params.phi_o / self.params.d_p  # KA (float): Heat transfer coefficient. [kcal / m * hr * K]
 
-        # q2 = self.Heat_2(z,T,t,fs,fl,x,y,w,p)   # [(kmol / m3 bed * hr) * (kg / m3)]
-        # q4 = self.Heat_4(z,T,t,fs,fl,x,y,w,p)
-        # q5 = self.Heat_5(z,T,t,fs,fl,x,y,w,p)
         R1 = self.ReactionRate_1(z,T,t,fs,x,y,w,p) # R1 (float): 1/3 Fe2O3 + CO = 2/3 Fe + CO2 reaction rate per unit volume of bed. [kmol CO / m3 bed * hr]
         R2 = self.ReactionRate_2(z,T,t,fs,x,y,w,p) # R2 (float): C + CO2 = 2CO reaction rate per unit volume of bed. [kmol CO2 / m3 bed * hr]
         R3 = self.ReactionRate_3(t,fs) # R3 (float): FeO(l) + C(s) = Fe(l) + CO(g) reaction rate per unit volume of bed. [kmol CO / m3 bed * hr]
@@ -2419,52 +2384,83 @@ class HCFurnaceModel(FurnaceModel):
         Q1 = Az*q4 + Az*Cs*t*q5                 # solid
         Q2 = 22.4*Az*C*q2*T + pai*Dz*self.params.U*(T-self.params.T_we) # gas       [kcal / m * hr]
 
-        df = pd.DataFrame(np.vstack((z, [KA, G1, G2, Q1, Q2])).T, columns=['z', 'KA', 'G1', 'G2', 'Q1', 'Q2'])
-        df.to_csv('Tt_para_1.csv', index=False)
+        # df = pd.DataFrame(np.vstack((z, [KA, G1, G2, Q1, Q2])).T, columns=['z', 'KA', 'G1', 'G2', 'Q1', 'Q2'])
+        # df.to_csv('Tt_para_1.csv', index=False)
 
-        G1 = (G1[1:] + G1[:-1]) / 2 
-        G2 = (G2[1:] + G2[:-1]) / 2
-        KA = (KA[1:] + KA[:-1]) / 2
-        Q1 = (Q1[1:] + Q1[:-1]) / 2
-        Q2 = (Q2[1:] + Q2[:-1]) / 2
+        z_low, z_high = z[t<1200], z[t>=1200]
+        G1_low, G1_high = G1[t<1200], G1[t>=1200]
+        G2_low, G2_high = G2[t<1200], G2[t>=1200]
+        KA_low, KA_high = KA[t<1200], KA[t>=1200]
+        Q1_low, Q1_high = Q1[t<1200], Q1[t>=1200]
+        Q2_low, Q2_high = Q2[t<1200], Q2[t>=1200]
+        G1_low = (G1_low[1:] + G1_low[:-1]) / 2 
+        G2_low = (G2_low[1:] + G2_low[:-1]) / 2
+        KA_low = (KA_low[1:] + KA_low[:-1]) / 2
+        Q1_low = (Q1_low[1:] + Q1_low[:-1]) / 2
+        Q2_low = (Q2_low[1:] + Q2_low[:-1]) / 2
+        G1_high = (G1_high[1:] + G1_high[:-1]) / 2 
+        G2_high = (G2_high[1:] + G2_high[:-1]) / 2
+        KA_high = (KA_high[1:] + KA_high[:-1]) / 2
+        Q1_high = (Q1_high[1:] + Q1_high[:-1]) / 2
+        Q2_high = (Q2_high[1:] + Q2_high[:-1]) / 2
 
-        z_diff = np.diff(z)
-        N = len(z_diff)
-        # sf = 1e4
-        A_temp,a_temp = setAa_n(N, z_diff, KA, G1, G2, T1in, T2in, Q1, Q2)
-        indices = np.where((t>1195)&(t<1205))
-        indices2 = [i+N for i in indices]
-        a_temp[indices] = 0
-        a_temp[indices2] = 0
-        X_temp = solve(A_temp, a_temp)
-
-        t_new = np.asarray(X_temp[0:N+1]).reshape(-1)
-        T_new = np.asarray(X_temp[(N+1):(2*N+2)]).reshape(-1)
-
-        plt.plot(z, T_new, label='Tnew')
-        plt.plot(z, t_new, label='tnew')
-        plt.legend()
-        plt.show()
-
-        plt.plot(z, T_new-T, label='Tnew-T')
-        plt.plot(z, t_new-t, label='tnew-t')
-        plt.legend()
-        plt.show()
-        # df = pd.DataFrame(np.vstack((z, [T, t, T_new, t_new])).T, columns=['z', 'T', 't', 'Tnew', 'tnew'])
-        # df.to_csv('Tt_hc_1.csv', index=False)
-        X_previous = X_temp.copy()
-        for i in range(N+1):
-            X_previous[i] = t[i]
-            X_previous[i+N+1] = T[i]
-
+        z_diff_low = np.diff(z_low)
+        N_low = len(z_diff_low)
+        T1in_low = t[0]
+        T2in_low = T[N_low]
+        t_low, T_low = t[t<1200], T[t<1200]
+        A_low,a_low = setAa_n(N_low, z_diff_low, KA_low, G1_low, G2_low, T1in_low, T2in_low, Q1_low, Q2_low)
+        X_low = solve(A_low, a_low)
+        t_low_new = np.asarray(X_low[0:N_low+1]).reshape(-1)
+        T_low_new = np.asarray(X_low[(N_low+1):(2*N_low+2)]).reshape(-1)
         count = 0
+        limit = 100
+        while(norm(T_low_new-T_low)/norm(T_low) >= 1e-3 or norm(t_low_new-t_low)/norm(t_low) >= 1e-3) and (count < limit):
+            count += 1
+            t_low, T_low = t_low_new, T_low_new
+            A_low,a_low = setAa_n(N_low, z_diff_low, KA_low, G1_low, G2_low, T1in_low, T2in_low, Q1_low, Q2_low)
+            X_low = solve(A_low, a_low)
+            t_low_new = np.asarray(X_low[0:N_low+1]).reshape(-1)
+            T_low_new = np.asarray(X_low[(N_low+1):(2*N_low+2)]).reshape(-1)
+
+        z_diff_high = np.diff(z_high)
+        N_high = len(z_diff_high)
+        T1in_high = t[N_low+1]
+        T2in_high = T[-1]
+        t_high, T_high = t[t>=1200], T[t>=1200]
+        A_high,a_high = setAa_n(N_high, z_diff_high, KA_high, G1_high, G2_high, T1in_high, T2in_high, Q1_high, Q2_high)
+        X_high = solve(A_high, a_high)
+        t_high_new = np.asarray(X_high[0:N_high+1]).reshape(-1)
+        T_high_new = np.asarray(X_high[(N_high+1):(2*N_high+2)]).reshape(-1)
+        count = 0
+        limit = 100
+        while(norm(T_high_new-T_high)/norm(T_high) >= 1e-3 or norm(t_high_new-t_high)/norm(t_high) >= 1e-3) and (count < limit):
+            count += 1
+            t_high, T_high = t_high_new, T_high_new
+            A_high,a_high = setAa_n(N_high, z_diff_high, KA_high, G1_high, G2_high, T1in_high, T2in_high, Q1_high, Q2_high)
+            X_high = solve(A_high, a_high)
+            t_high_new = np.asarray(X_high[0:N_high+1]).reshape(-1)
+            T_high_new = np.asarray(X_high[(N_high+1):(2*N_high+2)]).reshape(-1)
+
+        T_new = np.concatenate((T_low_new, T_high_new))
+        t_new = np.concatenate((t_low_new, t_high_new))
+
+        # plt.plot(z, T_new, label='Tnew')
+        # plt.plot(z, t_new, label='tnew')
+        # plt.legend()
+        # plt.show()
+
+        # plt.plot(z, T_new-T, label='Tnew-T')
+        # plt.plot(z, t_new-t, label='tnew-t')
+        # plt.legend()
+        # plt.show()
+
+        count_out = 0
         limit = 1000
         s = 0.5
-        # while(norm(T_new-T)/norm(T) >= 1e-3 or norm(t_new-t)/norm(t) >= 1e-3) and (count < limit):
-        while(norm(a_temp - A_temp@X_previous) / norm(a_temp) >= 1e-3) and (count < limit):
-            count += 1
-            print("norm(b-Ax)/norm(b) = ", norm(a_temp - A_temp@X_previous) / norm(a_temp))
-            print("Tt_hc, count = ", count)
+        while(norm(T_new-T)/norm(T) >= 1e-3 or norm(t_new-t)/norm(t) >= 1e-3) and (count_out < limit):
+            count_out += 1
+            print("Tt_hc, count_out = ", count_out)
             T = s*T_new + (1-s)*T
             t = s*t_new + (1-s)*t
 
@@ -2487,9 +2483,6 @@ class HCFurnaceModel(FurnaceModel):
 
             KA = 6 * (1-self.params.epsilon) * h_p * Az  / self.params.phi_o / self.params.d_p  # KA (float): Heat transfer coefficient. [kcal / m * hr * K]
 
-            # q2 = self.Heat_2(z,T,t,fs,fl,x,y,w,p)   # [(kmol / m3 bed * hr) * (kg / m3)]
-            # q4 = self.Heat_4(z,T,t,fs,fl,x,y,w,p)
-            # q5 = self.Heat_5(z,T,t,fs,fl,x,y,w,p)
             R1 = self.ReactionRate_1(z,T,t,fs,x,y,w,p) # R1 (float): 1/3 Fe2O3 + CO = 2/3 Fe + CO2 reaction rate per unit volume of bed. [kmol CO / m3 bed * hr]
             R2 = self.ReactionRate_2(z,T,t,fs,x,y,w,p) # R2 (float): C + CO2 = 2CO reaction rate per unit volume of bed. [kmol CO2 / m3 bed * hr]
             R3 = self.ReactionRate_3(t,fs) # R3 (float): FeO(l) + C(s) = Fe(l) + CO(g) reaction rate per unit volume of bed. [kmol CO / m3 bed * hr]
@@ -2508,43 +2501,80 @@ class HCFurnaceModel(FurnaceModel):
 
             G1 = rhob * self.params.Fs * (Cs + t*dCsdt) # solid   [kcal / hr * K]
             G2 = rho * F * (C + T*dCdT)    # gas     [kcal / hr * K]
-
-            G1 = G1[:-1] 
-            G2 = G2[:-1]
-
             Q1 = Az*q4 + Az*Cs*t*q5                 # solid
             Q2 = 22.4*Az*C*q2*T + pai*Dz*self.params.U*(T-self.params.T_we) # gas       [kcal / m * hr]
 
-            KA = KA[:-1]
-            Q1 = Q1[:-1]
-            Q2 = Q2[:-1]
+            z_low, z_high = z[t<1200], z[t>=1200]
+            G1_low, G1_high = G1[t<1200], G1[t>=1200]
+            G2_low, G2_high = G2[t<1200], G2[t>=1200]
+            KA_low, KA_high = KA[t<1200], KA[t>=1200]
+            Q1_low, Q1_high = Q1[t<1200], Q1[t>=1200]
+            Q2_low, Q2_high = Q2[t<1200], Q2[t>=1200]
+            G1_low = (G1_low[1:] + G1_low[:-1]) / 2 
+            G2_low = (G2_low[1:] + G2_low[:-1]) / 2
+            KA_low = (KA_low[1:] + KA_low[:-1]) / 2
+            Q1_low = (Q1_low[1:] + Q1_low[:-1]) / 2
+            Q2_low = (Q2_low[1:] + Q2_low[:-1]) / 2
+            G1_high = (G1_high[1:] + G1_high[:-1]) / 2 
+            G2_high = (G2_high[1:] + G2_high[:-1]) / 2
+            KA_high = (KA_high[1:] + KA_high[:-1]) / 2
+            Q1_high = (Q1_high[1:] + Q1_high[:-1]) / 2
+            Q2_high = (Q2_high[1:] + Q2_high[:-1]) / 2
 
-            A_temp, a_temp = setAa_n(N, z_diff, KA, G1, G2, T1in, T2in, Q1, Q2)
-            indices = np.where((t>1195)&(t<1205))
-            indices2 = [i+N for i in indices]
-            a_temp[indices] = 0
-            a_temp[indices2] = 0
-            X_temp = solve(A_temp, a_temp)
-            t_new = np.asarray(X_temp[0:N+1]).reshape(-1)
-            T_new = np.asarray(X_temp[(N+1):(2*N+2)]).reshape(-1)
+            z_diff_low = np.diff(z_low)
+            N_low = len(z_diff_low)
+            T1in_low = t[0]
+            T2in_low = T[N_low]
+            t_low, T_low = t[t<1200], T[t<1200]
+            A_low,a_low = setAa_n(N_low, z_diff_low, KA_low, G1_low, G2_low, T1in_low, T2in_low, Q1_low, Q2_low)
+            X_low = solve(A_low, a_low)
+            t_low_new = np.asarray(X_low[0:N_low+1]).reshape(-1)
+            T_low_new = np.asarray(X_low[(N_low+1):(2*N_low+2)]).reshape(-1)
+            count_low = 0
+            limit = 100
+            while(norm(T_low_new-T_low)/norm(T_low) >= 1e-3 or norm(t_low_new-t_low)/norm(t_low) >= 1e-3) and (count_low < limit):
+                count_low += 1
+                print("Tt_hc, count_low = ", count_low)
+                t_low, T_low = t_low_new, T_low_new
+                A_low,a_low = setAa_n(N_low, z_diff_low, KA_low, G1_low, G2_low, T1in_low, T2in_low, Q1_low, Q2_low)
+                X_low = solve(A_low, a_low)
+                t_low_new = np.asarray(X_low[0:N_low+1]).reshape(-1)
+                T_low_new = np.asarray(X_low[(N_low+1):(2*N_low+2)]).reshape(-1)
 
-            X_previous = X_temp.copy()
-            for i in range(N+1):
-                X_previous[i] = t[i]
-                X_previous[i+N+1] = T[i]
+            z_diff_high = np.diff(z_high)
+            N_high = len(z_diff_high)
+            T1in_high = t[N_low+1]
+            T2in_high = T[-1]
+            t_high, T_high = t[t>=1200], T[t>=1200]
+            A_high,a_high = setAa_n(N_high, z_diff_high, KA_high, G1_high, G2_high, T1in_high, T2in_high, Q1_high, Q2_high)
+            X_high = solve(A_high, a_high)
+            t_high_new = np.asarray(X_high[0:N_high+1]).reshape(-1)
+            T_high_new = np.asarray(X_high[(N_high+1):(2*N_high+2)]).reshape(-1)
+            count_high = 0
+            limit = 100
+            while(norm(T_high_new-T_high)/norm(T_high) >= 1e-3 or norm(t_high_new-t_high)/norm(t_high) >= 1e-3) and (count_high < limit):
+                count_high += 1
+                print("Tt_hc, count_high = ", count_high)
+                t_high, T_high = t_high_new, T_high_new
+                A_high,a_high = setAa_n(N_high, z_diff_high, KA_high, G1_high, G2_high, T1in_high, T2in_high, Q1_high, Q2_high)
+                X_high = solve(A_high, a_high)
+                t_high_new = np.asarray(X_high[0:N_high+1]).reshape(-1)
+                T_high_new = np.asarray(X_high[(N_high+1):(2*N_high+2)]).reshape(-1)
+
+            T_new = np.concatenate((T_low_new, T_high_new))
+            t_new = np.concatenate((t_low_new, t_high_new))
             
-            plt.plot(z, T_new, label='Tnew')
-            plt.plot(z, t_new, label='tnew')
-            plt.legend()
-            plt.show()
+            # plt.plot(z, T_new, label='Tnew')
+            # plt.plot(z, t_new, label='tnew')
+            # plt.legend()
+            # plt.show()
 
-            plt.plot(z, T_new-T, label='Tnew-T')
-            plt.plot(z, t_new-t, label='tnew-t')
-            plt.legend()
-            plt.show()
+            # plt.plot(z, T_new-T, label='Tnew-T')
+            # plt.plot(z, t_new-t, label='tnew-t')
+            # plt.legend()
+            # plt.show()
 
-        print("norm(b-Ax)/norm(b) = ", norm(a_temp - A_temp@X_previous) / norm(a_temp))
-        print("Tt_hc, total count = ", count)
+        print("Tt_hc, total count = ", count_out)
         return T_new, t_new
 
     def xy_hc(self,z,T,t,fs,fl,x,y,w,p):
@@ -2588,52 +2618,86 @@ class HCFurnaceModel(FurnaceModel):
         R4 = self.ReactionRate_4(z,T,t,fl,x,y,w,p)
         R6 = self.ReactionRate_6(z,T,t,x,y,w,p)
         R7 = self.ReactionRate_7(T,x,y,w,p)
-        # weight = smooth_heaviside(t-1200,k=1)
-        # R21 = R2
-        # R22 = R2 + R1+R4+R7
-        # R2 = (1-weight)*R21 + weight*R22
-        R2 = np.where(t<1200, R2, R2 + R1+R4+R7)
 
         G1 = F/22.4 * (1+K1)/K1  # G1 (float): capacity flow of x. [kmol / hr]
         G2 = F/22.4 * (1+K1)/K1  # G2 (float): capacity flow of y. [kmol / hr]
 
+        R2 = np.where(t<1200, R2, R2+R1+R4+R7)
         Q1 = Az*((K1-1)/(1+K1)*kappa_1*y + (x-2)*R2 + x*R4 + (x-1)*R6 + R7) * (1+K1)/K1
         Q2 = Az*(-(K1-1)/(1+K1)*kappa_1*y + (y+1)*R2 + (y-1)*R4 + y*R6 - R7) * (1+K1)/K1
 
-        # # 保存中间变量
-        # df = pd.DataFrame(np.vstack([z, G1, G2, KA, Q1, Q2]).T, columns=['z', 'G1', 'G2', 'KA', 'Q1', 'Q2'])
-        # df.to_csv('xy_hc_params.csv', index=False)
-
-        G1 = (G1[:-1] + G1[1:]) / 2
-        G2 = (G2[:-1] + G2[1:]) / 2
-
-        KA = (KA[:-1] + KA[1:]) / 2
-        Q1 = (Q1[:-1] + Q1[1:]) / 2
-        Q2 = (Q2[:-1] + Q2[1:]) / 2     
+        z_low, z_high = z[t<1200], z[t>=1200]
+        G1_low, G1_high = G1[t<1200], G1[t>=1200]
+        G2_low, G2_high = G2[t<1200], G2[t>=1200]
+        KA_low, KA_high = KA[t<1200], KA[t>=1200]
+        Q1_low, Q1_high = Q1[t<1200], Q1[t>=1200]
+        Q2_low, Q2_high = Q2[t<1200], Q2[t>=1200]
+        G1_low = (G1_low[1:] + G1_low[:-1]) / 2 
+        G2_low = (G2_low[1:] + G2_low[:-1]) / 2
+        KA_low = (KA_low[1:] + KA_low[:-1]) / 2
+        Q1_low = (Q1_low[1:] + Q1_low[:-1]) / 2
+        Q2_low = (Q2_low[1:] + Q2_low[:-1]) / 2
+        G1_high = (G1_high[1:] + G1_high[:-1]) / 2 
+        G2_high = (G2_high[1:] + G2_high[:-1]) / 2
+        KA_high = (KA_high[1:] + KA_high[:-1]) / 2
+        Q1_high = (Q1_high[1:] + Q1_high[:-1]) / 2
+        Q2_high = (Q2_high[1:] + Q2_high[:-1]) / 2   
 
         z_diff = np.diff(z)
         N = len(z_diff)
-        # sf = 1e5
-        # mf = 1e-4
         A_temp,a_temp = setAa_s(N, z_diff, KA, G1, G2, x_in, y_in, Q1, Q2)
 
-        X_temp = solve(A_temp, a_temp)
-        X_previous = X_temp.copy()
-        for i in range(N+1):
-            X_previous[i] = x[i]
-            X_previous[i+N+1] = y[i]
+        z_diff_low = np.diff(z_low)
+        N_low = len(z_diff_low)
+        xin_low = x[N_low]
+        yin_low = y[N_low]
+        x_low, y_low = x[t<1200], y[t<1200]
+        A_low,a_low = setAa_s(N_low, z_diff_low, KA_low, G1_low, G2_low, xin_low, yin_low, Q1_low, Q2_low)
+        X_low = solve(A_low, a_low)
+        x_low_new = np.asarray(X_low[0:N_low+1]).reshape(-1)
+        y_low_new = np.asarray(X_low[(N_low+1):(2*N_low+2)]).reshape(-1)
+        count_low = 0
+        limit = 100
+        while(norm(x_low_new-x_low) >= 1e-3*N_low**0.5 or norm(y_low_new-y_low) >= 1e-3*N_low**0.5) and (count_low < limit):
+            count_low += 1
+            # print("xy_hc, count_low = ", count_low)
+            x_low, y_low = x_low_new, y_low_new
+            A_low,a_low = setAa_s(N_low, z_diff_low, KA_low, G1_low, G2_low, xin_low, yin_low, Q1_low, Q2_low)
+            X_low = solve(A_low, a_low)
+            x_low_new = np.asarray(X_low[0:N_low+1]).reshape(-1)
+            y_low_new = np.asarray(X_low[(N_low+1):(2*N_low+2)]).reshape(-1)
 
-        x_new = np.asarray(X_temp[0:N+1]).reshape(-1)
-        y_new = np.asarray(X_temp[(N+1):(2*N+2)]).reshape(-1)
+        z_diff_high = np.diff(z_high)
+        N_high = len(z_diff_high)
+        xin_high = x[-1]
+        yin_high = y[-1]
+        x_high, y_high = x[t>=1200], y[t>=1200]
+        A_high,a_high = setAa_s(N_high, z_diff_high, KA_high, G1_high, G2_high, xin_high, yin_high, Q1_high, Q2_high)
+        X_high = solve(A_high, a_high)
+        x_high_new = np.asarray(X_high[0:N_high+1]).reshape(-1)
+        y_high_new = np.asarray(X_high[(N_high+1):(2*N_high+2)]).reshape(-1)
+        count_high = 0
+        limit = 100
+        while(norm(x_high_new-x_high)/norm(x_high) >= 1e-3*N_high**0.5 or norm(y_high_new-y_high) >= 1e-3*N_high**0.5) and (count_high < limit):
+            count_high += 1
+            # print("xy_hc, count_high = ", count_high)
+            x_high, y_high = x_high_new, y_high_new
+            A_high,a_high = setAa_s(N_high, z_diff_high, KA_high, G1_high, G2_high, xin_high, yin_high, Q1_high, Q2_high)
+            X_high = solve(A_high, a_high)
+            x_high_new = np.asarray(X_high[0:N_high+1]).reshape(-1)
+            y_high_new = np.asarray(X_high[(N_high+1):(2*N_high+2)]).reshape(-1)
 
-        count = 0
+        x_new = np.concatenate((x_low_new, x_high_new))
+        y_new = np.concatenate((y_low_new, y_high_new))
+
+        count_out = 0
         limit = 100
         s = 0.5
-        # while(norm(x_new-x) >= 1e-6*N**0.5 or norm(y_new-y) >= 1e-6*N**0.5) and (count < limit):
-        while(norm(a_temp - A_temp@X_previous) / norm(a_temp) >= 1e-3) and (count < limit):
-            count += 1
-            # print("norm(b-Ax)/norm(b) = ", norm(a_temp - A_temp@X_previous) / norm(a_temp))
-            # print("Tt_hc, count = ", count)
+        while(norm(x_new-x)/norm(x) >= 1e-3 or norm(y_new-y)/norm(y) >= 1e-3) and (count_out < limit):
+            count_out += 1
+            print("xy_hc, count_out = ", count_out)
+            # print("norm(x_new-x)/norm(x) = ", norm(x_new-x)/norm(x))
+            # print("norm(y_new-y)/norm(y) = ", norm(y_new-y)/norm(y))
             x = s*x_new + (1-s)*x
             y = s*y_new + (1-s)*y
 
@@ -2658,36 +2722,92 @@ class HCFurnaceModel(FurnaceModel):
             R4 = self.ReactionRate_4(z,T,t,fl,x,y,w,p)
             R6 = self.ReactionRate_6(z,T,t,x,y,w,p)
             R7 = self.ReactionRate_7(T,x,y,w,p)
-            # weight = smooth_heaviside(t-1200,k=1)
-            # R21 = R2
-            # R22 = R2 + R1+R4+R7
-            # R2 = (1-weight)*R21 + weight*R22
-            R2 = np.where(t<1200, R2, R2 + R1+R4+R7)
 
             G1 = F/22.4 * (1+K1)/K1  # G1 (float): capacity flow of x. [kmol / hr]
             G2 = F/22.4 * (1+K1)/K1  # G2 (float): capacity flow of y. [kmol / hr]
 
-            G1 = (G1[:-1] + G1[1:]) / 2
-            G2 = (G2[:-1] + G2[1:]) / 2 
-
+            R2 = np.where(t<1200, R2, R2+R1+R4+R7)
             Q1 = Az*((K1-1)/(1+K1)*kappa_1*y + (x-2)*R2 + x*R4 + (x-1)*R6 + R7) * (1+K1)/K1
             Q2 = Az*(-(K1-1)/(1+K1)*kappa_1*y + (y+1)*R2 + (y-1)*R4 + y*R6 - R7) * (1+K1)/K1
 
-            KA = (KA[:-1] + KA[1:]) / 2
-            Q1 = (Q1[:-1] + Q1[1:]) / 2
-            Q2 = (Q2[:-1] + Q2[1:]) / 2
+            z_low, z_high = z[t<1200], z[t>=1200]
+            G1_low, G1_high = G1[t<1200], G1[t>=1200]
+            G2_low, G2_high = G2[t<1200], G2[t>=1200]
+            KA_low, KA_high = KA[t<1200], KA[t>=1200]
+            Q1_low, Q1_high = Q1[t<1200], Q1[t>=1200]
+            Q2_low, Q2_high = Q2[t<1200], Q2[t>=1200]
+            G1_low = (G1_low[1:] + G1_low[:-1]) / 2 
+            G2_low = (G2_low[1:] + G2_low[:-1]) / 2
+            KA_low = (KA_low[1:] + KA_low[:-1]) / 2
+            Q1_low = (Q1_low[1:] + Q1_low[:-1]) / 2
+            Q2_low = (Q2_low[1:] + Q2_low[:-1]) / 2
+            G1_high = (G1_high[1:] + G1_high[:-1]) / 2 
+            G2_high = (G2_high[1:] + G2_high[:-1]) / 2
+            KA_high = (KA_high[1:] + KA_high[:-1]) / 2
+            Q1_high = (Q1_high[1:] + Q1_high[:-1]) / 2
+            Q2_high = (Q2_high[1:] + Q2_high[:-1]) / 2   
 
             z_diff = np.diff(z)
             N = len(z_diff)
             A_temp,a_temp = setAa_s(N, z_diff, KA, G1, G2, x_in, y_in, Q1, Q2)
-            X_temp = solve(A_temp, a_temp)
 
-            X_previous = X_temp.copy()
-            for i in range(N+1):
-                X_previous[i] = x[i]
-                X_previous[i+N+1] = y[i]       
-            x_new = np.asarray(X_temp[0:N+1]).reshape(-1)
-            y_new = np.asarray(X_temp[(N+1):(2*N+2)]).reshape(-1)
+            z_diff_low = np.diff(z_low)
+            N_low = len(z_diff_low)
+            xin_low = x[N_low]
+            yin_low = y[N_low]
+            x_low, y_low = x[t<1200], y[t<1200]
+            A_low,a_low = setAa_s(N_low, z_diff_low, KA_low, G1_low, G2_low, xin_low, yin_low, Q1_low, Q2_low)
+            X_low = solve(A_low, a_low)
+            x_low_new = np.asarray(X_low[0:N_low+1]).reshape(-1)
+            y_low_new = np.asarray(X_low[(N_low+1):(2*N_low+2)]).reshape(-1)
+            count_low = 0
+            limit = 100
+            while(norm(x_low_new-x_low) >= 1e-4*N_low**0.5 or norm(y_low_new-y_low) >= 1e-4*N_low**0.5) and (count_low < limit):
+                count_low += 1
+                print("xy_hc, count_low = ", count_low)
+                # print("norm(x_low_new-x_low) = ", norm(x_low_new-x_low))
+                # print("norm(y_low_new-y_low) = ", norm(y_low_new-y_low))
+                x_low, y_low = x_low_new, y_low_new
+                A_low,a_low = setAa_s(N_low, z_diff_low, KA_low, G1_low, G2_low, xin_low, yin_low, Q1_low, Q2_low)
+                X_low = solve(A_low, a_low)
+                x_low_new = np.asarray(X_low[0:N_low+1]).reshape(-1)
+                y_low_new = np.asarray(X_low[(N_low+1):(2*N_low+2)]).reshape(-1)
+
+            z_diff_high = np.diff(z_high)
+            N_high = len(z_diff_high)
+            xin_high = x[-1]
+            yin_high = y[-1]
+            x_high, y_high = x[t>=1200], y[t>=1200]
+            A_high,a_high = setAa_s(N_high, z_diff_high, KA_high, G1_high, G2_high, xin_high, yin_high, Q1_high, Q2_high)
+            X_high = solve(A_high, a_high)
+            x_high_new = np.asarray(X_high[0:N_high+1]).reshape(-1)
+            y_high_new = np.asarray(X_high[(N_high+1):(2*N_high+2)]).reshape(-1)
+            count_high = 0
+            limit = 100
+            while(norm(x_high_new-x_high) >= 1e-4*N_high**0.5 or norm(y_high_new-y_high) >= 1e-4*N_high**0.5) and (count_high < limit):
+                count_high += 1
+                print("xy_hc, count_high = ", count_high)
+                # print("norm(x_high_new-x_high) = ", norm(x_high_new-x_high))
+                # print("norm(y_high_new-y_high) = ", norm(y_high_new-y_high))
+                x_high, y_high = x_high_new, y_high_new
+                x_high, y_high = x_high_new, y_high_new
+                A_high,a_high = setAa_s(N_high, z_diff_high, KA_high, G1_high, G2_high, xin_high, yin_high, Q1_high, Q2_high)
+                X_high = solve(A_high, a_high)
+                x_high_new = np.asarray(X_high[0:N_high+1]).reshape(-1)
+                y_high_new = np.asarray(X_high[(N_high+1):(2*N_high+2)]).reshape(-1)
+
+            x_new = np.concatenate((x_low_new, x_high_new))
+            y_new = np.concatenate((y_low_new, y_high_new))
+
+            # plt.plot(z, x_new, label='xnew')
+            # plt.plot(z, y_new, label='ynew')
+            # plt.legend()
+            # plt.show()
+
+            # plt.plot(z, x_new-x, label='xnew-x')
+            # plt.plot(z, y_new-y, label='ynew-y')
+            # plt.legend()
+            # plt.show()
         
         return x_new, y_new
 
@@ -2725,11 +2845,6 @@ class HCFurnaceModel(FurnaceModel):
         R4 = self.ReactionRate_4(z,T,t,fl,x,y,w,p)
         R6 = self.ReactionRate_6(z,T,t,x,y,w,p)
         R7 = self.ReactionRate_7(T,x,y,w,p)
-        # weight = smooth_heaviside(t-1200,k=1)
-        # R21 = R2
-        # R22 = R2 + R1+R4+R7
-        # R2 = (1-weight)*R21 + weight*R22
-        # R2 = np.where(t<1200, R2, R2 + R1+R4+R7)
 
         a_list = 22.4*Az*kappa_5/F
         b_list = 22.4*Az*(w*R2 + w*R4 - kappa_5*self.params.F_0*(self.params.w_0+self.params.v_0)/F/(1+K) + (w-1)*R6 - R7) / F
@@ -2770,11 +2885,6 @@ class HCFurnaceModel(FurnaceModel):
             R4 = self.ReactionRate_4(z,T,t,fl,x,y,w,p)
             R6 = self.ReactionRate_6(z,T,t,x,y,w,p)
             R7 = self.ReactionRate_7(T,x,y,w,p)
-            # weight = smooth_heaviside(t-1200,k=1)
-            # R21 = R2
-            # R22 = R2 + R1+R4+R7
-            # R2 = (1-weight)*R21 + weight*R22
-            # R2 = np.where(t<1200, R2, R2 + R1+R4+R7)
 
             a_list = 22.4*Az*kappa_5/F
             b_list = 22.4*Az*(w*R2 + w*R4 - kappa_5*self.params.F_0*(self.params.w_0+self.params.v_0)/F/(1+K) + (w-1)*R6 - R7) / F
@@ -2982,120 +3092,3 @@ class HCFurnaceModel(FurnaceModel):
 
         return rhob_new
     
-    def Heat_2(self,z,T,t,fs,fl,x,y,w,p):
-        """
-        Args:
-            z (float): height from the stock line. [m]
-            T (float): temperature of gas. [K]
-            t (float): temperature of solid particles(molten materials). [K]
-            fs (float): fractional reduction of iron ore. [-]
-            fl (float): fractional decomposition of limestone. [-]
-            x (float): molar fraction of CO in bulk of gas. [-]
-            y (float): molar fraction of CO2 in bulk of gas. [-]
-            w (float): molar fraction of H2 in bulk of gas. [-]
-            p (float): pressure of gas. [Kg / m2]
-
-        Returns:
-            q (float): [(kmol / m3 bed * hr) * (kg / m3)]
-        """
-        R1 = self.ReactionRate_1(z,T,t,fs,x,y,w,p) # R1 (float): 1/3 Fe2O3 + CO = 2/3 Fe + CO2 reaction rate per unit volume of bed. [kmol CO / m3 bed * hr]
-        R2 = self.ReactionRate_2(z,T,t,fs,x,y,w,p) # R2 (float): C + CO2 = 2CO reaction rate per unit volume of bed. [kmol CO2 / m3 bed * hr]
-        R3 = self.ReactionRate_3(t,fs) # R3 (float): FeO(l) + C(s) = Fe(l) + CO(g) reaction rate per unit volume of bed. [kmol CO / m3 bed * hr]
-        R4 = self.ReactionRate_4(z,T,t,fl,x,y,w,p) # R4 (float): CaCO3 = CaO + CO2 reaction rate per unit volume of bed. [kmol CO2 / m3 bed * hr]
-        R5 = self.ReactionRate_5(z,T,t,fs,x,y,w,p) # R5 (float): 1/3 Fe2O3 + H2 = 2/3 Fe + H2O reaction rate per unit volume of bed. [kmol H2 / m3 bed * hr]
-        R6 = self.ReactionRate_6(z,T,t,x,y,w,p) # R6 (float): C + H2O = CO + H2 reaction rate per unit volume of bed. [kmol H2O / m3 bed * hr]
-
-        weight = smooth_heaviside(t-1673,k=5)
-        q1 = (1.2507*0 + 0.7261*1)*R1 + 0.5246*R2 + 1.9768*R4 + 0.7143*R5 + 0.5364*R6
-        q2 = (1.2507*1 + 0.7261*(-1))*R3 + 0.5246*R2 + 1.9768*R4 + 0.7143*R5 + 0.5364*R6
-        q = q1 * (1-weight) + q2 * weight
-
-        return q
-    
-    def Heat_4(self,z,T,t,fs,fl,x,y,w,p):
-        """
-        Args:
-            z (float): height from the stock line. [m]
-            T (float): temperature of gas. [K]
-            t (float): temperature of solid particles(molten materials). [K]
-            fs (float): fractional reduction of iron ore. [-]
-            fl (float): fractional decomposition of limestone. [-]
-            x (float): molar fraction of CO in bulk of gas. [-]
-            y (float): molar fraction of CO2 in bulk of gas. [-]
-            w (float): molar fraction of H2 in bulk of gas. [-]
-            p (float): pressure of gas. [Kg / m2]
-
-        Returns:
-            q (float): [kcal / m3 bed * hr]
-        """
-        # if fs < 0.111:
-        #     H1 = -7.88e3 # [kcal / kmol CO]
-        #     H5 = -2.8e3 # [kcal / kmol H2]
-        # elif fs < 0.333:
-        #     H1 = 7.12e3
-        #     H5 = 16.1e3 
-        # else:
-        #     H1 = -5.45e3
-        #     H5 = 6.5e3
-
-        weight1 = smooth_heaviside(fs-0.111,k=200)
-        weight2 = smooth_heaviside(fs-0.333,k=200)
-
-        H1 = np.zeros_like(z)
-        H5 = np.zeros_like(z)
-        mask = (fs < 0.222)
-        H1[mask] = (1-weight1[mask])*-7.88e3 * 1/9 + weight1[mask]*7.12e3 * 2/9
-        H5[mask] = (1-weight1[mask])*-2.8e3 * 1/9 + weight1[mask]*16.1e3 * 2/9
-        H1[~mask] = (1-weight2[~mask])*7.12e3 * 2/9 + weight2[~mask]*-5.45e3 * 2/3
-        H5[~mask] = (1-weight2[~mask])*16.1e3 * 2/9 + weight2[~mask]*6.5e3 * 2/3
-        
-        H2 = 40.8e3 # [kcal / kmol CO2]
-        H3 = 31.13e3 # [kcal / kmol CO]
-        H4 = 42.5e3 # [kcal / kmol CO2]
-        H6 = 31.5e3 # [kcal / kmol CO]
-        H7 = -9.84e3 # [kcal / kmol CO2]
-
-        R1 = self.ReactionRate_1(z,T,t,fs,x,y,w,p) # R1 (float): 1/3 Fe2O3 + CO = 2/3 Fe + CO2 reaction rate per unit volume of bed. [kmol CO / m3 bed * hr]
-        R2 = self.ReactionRate_2(z,T,t,fs,x,y,w,p) # R2 (float): C + CO2 = 2CO reaction rate per unit volume of bed. [kmol CO2 / m3 bed * hr]
-        R3 = self.ReactionRate_3(t,fs) # R3 (float): FeO(l) + C(s) = Fe(l) + CO(g) reaction rate per unit volume of bed. [kmol CO / m3 bed * hr]
-        R4 = self.ReactionRate_4(z,T,t,fl,x,y,w,p) # R4 (float): CaCO3 = CaO + CO2 reaction rate per unit volume of bed. [kmol CO2 / m3 bed * hr]
-        R5 = self.ReactionRate_5(z,T,t,fs,x,y,w,p) # R5 (float): 1/3 Fe2O3 + H2 = 2/3 Fe + H2O reaction rate per unit volume of bed. [kmol H2 / m3 bed * hr]
-        R6 = self.ReactionRate_6(z,T,t,x,y,w,p) # R6 (float): C + H2O = CO + H2 reaction rate per unit volume of bed. [kmol H2O / m3 bed * hr]
-        R7 = self.ReactionRate_7(T,x,y,w,p) # R7 (float): CO + H2O = CO2 + H2 reaction rate per unit volume of bed. [kmol H2 / m3 bed * hr]
-
-        weight = smooth_heaviside(t-1673,k=2)
-        q1 = -H1*R1 -H2*R2 -H4*R4 -H5*R5 -H6*R6 -H7*R7
-        q2 = -H3*R3 -H2*R2 -H4*R4 -H5*R5 -H6*R6 -H7*R7
-        q = (1-weight)*q1 + weight*q2
-
-        return q    
-    
-    def Heat_5(self,z,T,t,fs,fl,x,y,w,p):
-        """
-        Args:
-            z (float): height from the stock line. [m]
-            T (float): temperature of gas. [K]
-            t (float): temperature of solid particles(molten materials). [K]
-            fs (float): fractional reduction of iron ore. [-]
-            fl (float): fractional decomposition of limestone. [-]
-            x (float): molar fraction of CO in bulk of gas. [-]
-            y (float): molar fraction of CO2 in bulk of gas. [-]
-            w (float): molar fraction of H2 in bulk of gas. [-]
-            p (float): pressure of gas. [Kg / m2]
-
-        Returns:
-            q (float): [kg / m3 bed * hr]
-        """
-        R1 = self.ReactionRate_1(z,T,t,fs,x,y,w,p) # R1 (float): 1/3 Fe2O3 + CO = 2/3 Fe + CO2 reaction rate per unit volume of bed. [kmol CO / m3 bed * hr]
-        R2 = self.ReactionRate_2(z,T,t,fs,x,y,w,p) # R2 (float): C + CO2 = 2CO reaction rate per unit volume of bed. [kmol CO2 / m3 bed * hr]
-        R3 = self.ReactionRate_3(t,fs) # R3 (float): FeO(l) + C(s) = Fe(l) + CO(g) reaction rate per unit volume of bed. [kmol CO / m3 bed * hr]
-        R4 = self.ReactionRate_4(z,T,t,fl,x,y,w,p) # R4 (float): CaCO3 = CaO + CO2 reaction rate per unit volume of bed. [kmol CO2 / m3 bed * hr]
-        R5 = self.ReactionRate_5(z,T,t,fs,x,y,w,p) # R5 (float): 1/3 Fe2O3 + H2 = 2/3 Fe + H2O reaction rate per unit volume of bed. [kmol H2 / m3 bed * hr]
-        R6 = self.ReactionRate_6(z,T,t,x,y,w,p) # R6 (float): C + H2O = CO + H2 reaction rate per unit volume of bed. [kmol H2O / m3 bed * hr]
-
-        weight = smooth_heaviside(t-1673,k=5)
-        q1 = 16*R1 + 12*R2 + 44*R4 + 16*R5 + 12*R6
-        q2 = 28*R3 + 12*R2 + 44*R4 + 16*R5 + 12*R6
-        q = q1 * (1-weight) + q2 * weight
-        # q = np.zeros_like(q)
-        return q    
