@@ -64,3 +64,91 @@
 2026-01-31 11:53:49 - INFO - 测试 hc_xy_raw
 2026-01-31 11:56:09 - INFO - 计算完成 hc_xy_raw
 2026-01-31 12:01:52 - INFO - 程序结束
+2026-01-31 12:37:00 - INFO - 程序开始运行
+2026-01-31 12:37:00 - INFO - 测试 hc_5n4
+2026-01-31 15:36:16 - INFO - 程序结束
+2026-01-31 15:45:20 - INFO - 程序开始运行
+2026-01-31 15:45:20 - INFO - 测试 hc_5n4
+2026-01-31 15:45:32 - INFO - 程序结束
+2026-01-31 15:46:09 - INFO - 程序开始运行
+2026-01-31 15:46:09 - INFO - 测试 hc_5n4
+2026-01-31 15:47:56 - INFO - 程序结束
+2026-01-31 15:49:42 - INFO - 程序开始运行
+2026-01-31 15:49:42 - INFO - 测试 hc_5n4
+2026-01-31 15:50:27 - INFO - 程序结束
+2026-01-31 15:50:29 - INFO - 程序开始运行
+2026-01-31 15:50:29 - INFO - 测试 hc_5n4
+2026-01-31 15:52:15 - ERROR - 程序出错: name 'N' is not defined
+Traceback (most recent call last):
+  File "d:\Group\HyOCR\20260130\main.py", line 510, in <module>
+    main()
+    ~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 493, in main
+    test_hc_5n4()
+    ~~~~~~~~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 361, in test_hc_5n4
+    w_new = model.w_hc(z_guess, T, t, fs, fl, x, y, w, p)
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 2867, in w_hc
+    A_low,a_low = setAa_linear_n(N, z_diff, win_low, a_list_low, b_list_low)
+                                 ^
+NameError: name 'N' is not defined
+2026-01-31 15:52:15 - INFO - 程序结束
+2026-01-31 15:56:13 - INFO - 程序开始运行
+2026-01-31 15:56:13 - INFO - 测试 hc_5n4
+2026-01-31 15:56:37 - INFO - 程序结束
+2026-01-31 15:56:57 - INFO - 程序开始运行
+2026-01-31 15:56:57 - INFO - 测试 hc_5n4
+2026-01-31 15:56:59 - ERROR - 程序出错: name 'z_diff' is not defined
+Traceback (most recent call last):
+  File "d:\Group\HyOCR\20260130\main.py", line 510, in <module>
+    main()
+    ~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 493, in main
+    test_hc_5n4()
+    ~~~~~~~~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 361, in test_hc_5n4
+    w_new = model.w_hc(z_guess, T, t, fs, fl, x, y, w, p)
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 2867, in w_hc
+    A_low,a_low = setAa_linear_n(N_low, z_diff, win_low, a_list_low, b_list_low)
+                                        ^^^^^^
+NameError: name 'z_diff' is not defined
+2026-01-31 15:56:59 - INFO - 程序结束
+2026-01-31 15:58:12 - INFO - 程序开始运行
+2026-01-31 15:58:12 - INFO - 测试 hc_5n4
+2026-01-31 15:58:38 - INFO - final relative error:
+2026-01-31 15:58:38 - INFO - relative error of T = 0.000856104717408111
+2026-01-31 15:58:38 - INFO - relative error of t = 0.0008912685430668392
+2026-01-31 15:58:38 - INFO - relative error of x = 0.000226208004143504
+2026-01-31 15:58:38 - INFO - relative error of y = 1.9490462979312844e-05
+2026-01-31 15:58:38 - INFO - relative error of w = 0.00012393311379713383
+2026-01-31 15:58:38 - INFO - relative error of p = 9.846123722324907e-05
+2026-01-31 15:58:38 - INFO - relative error of fs = 0.0009901930684262756
+2026-01-31 15:58:38 - INFO - relative error of fl = 0.01083501218317064
+2026-01-31 15:58:38 - INFO - relative error of rhob = 4.9373689549044305e-05
+2026-01-31 15:58:38 - INFO - 程序结束
+2026-01-31 15:59:14 - INFO - 程序开始运行
+2026-01-31 15:59:14 - INFO - 测试 hc_5n4
+2026-01-31 15:59:40 - INFO - final relative error:
+2026-01-31 15:59:40 - INFO - relative error of T = 0.000856104717408111
+2026-01-31 15:59:40 - INFO - relative error of t = 0.0008912685430668392
+2026-01-31 15:59:40 - INFO - relative error of x = 0.000226208004143504
+2026-01-31 15:59:40 - INFO - relative error of y = 1.9490462979312844e-05
+2026-01-31 15:59:40 - INFO - relative error of w = 0.00012393311379713383
+2026-01-31 15:59:40 - INFO - relative error of p = 9.846123722324907e-05
+2026-01-31 15:59:40 - INFO - relative error of fs = 0.0009901930684262756
+2026-01-31 15:59:40 - INFO - relative error of fl = 0.01083501218317064
+2026-01-31 15:59:40 - INFO - relative error of rhob = 4.9373689549044305e-05
+2026-01-31 16:01:04 - INFO - 程序结束
+2026-01-31 16:02:12 - INFO - 程序开始运行
+2026-01-31 16:02:12 - INFO - 测试 hc_5n4
+2026-01-31 16:04:28 - INFO - final relative error:
+2026-01-31 16:04:28 - INFO - relative error of T = 0.0003710469506232807
+2026-01-31 16:04:28 - INFO - relative error of t = 0.00037302485468526073
+2026-01-31 16:04:28 - INFO - relative error of x = 0.00013978376494147213
+2026-01-31 16:04:28 - INFO - relative error of y = 0.0004381172301290603
+2026-01-31 16:04:28 - INFO - relative error of w = 0.00017654110168351532
+2026-01-31 16:04:28 - INFO - relative error of p = 0.0002447436629264638
+2026-01-31 16:04:28 - INFO - relative error of fs = 0.0007409775987148664
+2026-01-31 16:04:28 - INFO - relative error of fl = 0.004731556276714317
+2026-01-31 16:04:28 - INFO - relative error of rhob = 0.00020315948912607163
+2026-01-31 16:04:46 - INFO - 程序结束

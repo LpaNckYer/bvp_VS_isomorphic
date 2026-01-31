@@ -274,11 +274,12 @@ def test_hc_5n4():
     """
     双循环
     """
+    logging.info("测试 hc_5n4")
     params = load_parameters("my_design")   # 调用已保存的参数
-    # params2 = quick_modify(params, 
-    #                      case_name="my_design",
-    #                      initial_mesh=100)
-    model = HCFurnaceModel(params)
+    params2 = quick_modify(params, 
+                         case_name="my_design",
+                         initial_mesh=2000)
+    model = HCFurnaceModel(params2)
 
     # 1. 初值设置（分段线性）
     H0 = model.params.H0
@@ -334,9 +335,9 @@ def test_hc_5n4():
     RE_y = norm(y_new - y)/norm(y)
     RE_fl = norm(fl_new - fl)/norm(fl)
     count = 0
-    while(RE_T >= 1e-3 or RE_t >= 1e-3 or RE_x >= 1e-3 or RE_y >= 1e-3 or RE_fl >= 1e-3) and (count < 10000):
+    while(RE_T >= 1e-3 or RE_t >= 1e-3 or RE_x >= 1e-3 or RE_y >= 1e-3 or RE_fl >= 1e-2) and (count < 10000):
         count += 1
-        print("first loop count = ", count)
+        # print("first loop count = ", count)
         # print("relative error of T = ", RE_T)
         # print("relative error of t = ", RE_t)
         # print("relative error of x = ", RE_x)
@@ -465,11 +466,11 @@ def test_hc_5n4():
         plt.ylabel(variables[i])
         plt.xlabel('z')
     plt.tight_layout()
-    # plt.show()
+    plt.show()
 
     # 保存结果
     df = pd.DataFrame(np.vstack((z_guess, y_plot)).T, columns=['z'] + variables)
-    # df.to_csv('test_hc_5n4_1e-3_linear_N=100.csv', index=False)   
+    df.to_csv('test_hc_5n4_R2_1200_linear_N=2000.csv', index=False)   
 
 def main():
     """主函数"""
@@ -487,9 +488,9 @@ def main():
 
     # 热量流法求解测试
     # test_hc_Tt_raw()
-    test_hc_xy_raw()
+    # test_hc_xy_raw()
 
-    # test_hc_5n4()
+    test_hc_5n4()
 
     print("\n" + "=" * 50)
     print("主程序结束")

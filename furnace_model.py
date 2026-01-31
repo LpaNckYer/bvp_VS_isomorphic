@@ -576,7 +576,7 @@ class FurnaceModel:
         count = 0
         limit = 100
         s = 0.5
-        while(norm(a_temp - A_temp@X_previous) / norm(a_temp) >= 1e-3) and (count < limit):
+        while(norm(w_new-w)/norm(w) >= 1e-3) and (count < limit):
             count += 1
             # print("norm(b-Ax)/norm(b) = ", norm(a_temp - A_temp@X_previous) / norm(a_temp))
             w = s*w_new + (1-s)*w
@@ -684,7 +684,7 @@ class FurnaceModel:
         count = 0
         limit = 100
         s = 0.5
-        while(norm(a_temp - A_temp@X_previous) / norm(a_temp) >= 1e-3) and (count < limit):
+        while(norm(fs_new-fs)/norm(fs) >= 1e-3) and (count < limit):
             count += 1
             # print("norm(b-Ax)/norm(b) = ", norm(a_temp - A_temp@X_previous) / norm(a_temp))
             fs = s*fs_new + (1-s)*fs
@@ -739,7 +739,7 @@ class FurnaceModel:
         count = 0
         limit = 100
         s = 0.5
-        while(norm(a_temp - A_temp@X_previous) / norm(a_temp) >= 1e-3) and (count < limit):
+        while(norm(fl_new-fl)/norm(fl) >= 1e-3) and (count < limit):
             count += 1
             # print("norm(b-Ax)/norm(b) = ", norm(a_temp - A_temp@X_previous) / norm(a_temp))
             fl = s*fl_new + (1-s)*fl
@@ -2460,7 +2460,7 @@ class HCFurnaceModel(FurnaceModel):
         s = 0.5
         while(norm(T_new-T)/norm(T) >= 1e-3 or norm(t_new-t)/norm(t) >= 1e-3) and (count_out < limit):
             count_out += 1
-            print("Tt_hc, count_out = ", count_out)
+            # print("Tt_hc, count_out = ", count_out)
             T = s*T_new + (1-s)*T
             t = s*t_new + (1-s)*t
 
@@ -2534,7 +2534,7 @@ class HCFurnaceModel(FurnaceModel):
             limit = 100
             while(norm(T_low_new-T_low)/norm(T_low) >= 1e-3 or norm(t_low_new-t_low)/norm(t_low) >= 1e-3) and (count_low < limit):
                 count_low += 1
-                print("Tt_hc, count_low = ", count_low)
+                # print("Tt_hc, count_low = ", count_low)
                 t_low, T_low = t_low_new, T_low_new
                 A_low,a_low = setAa_n(N_low, z_diff_low, KA_low, G1_low, G2_low, T1in_low, T2in_low, Q1_low, Q2_low)
                 X_low = solve(A_low, a_low)
@@ -2554,7 +2554,7 @@ class HCFurnaceModel(FurnaceModel):
             limit = 100
             while(norm(T_high_new-T_high)/norm(T_high) >= 1e-3 or norm(t_high_new-t_high)/norm(t_high) >= 1e-3) and (count_high < limit):
                 count_high += 1
-                print("Tt_hc, count_high = ", count_high)
+                # print("Tt_hc, count_high = ", count_high)
                 t_high, T_high = t_high_new, T_high_new
                 A_high,a_high = setAa_n(N_high, z_diff_high, KA_high, G1_high, G2_high, T1in_high, T2in_high, Q1_high, Q2_high)
                 X_high = solve(A_high, a_high)
@@ -2574,7 +2574,7 @@ class HCFurnaceModel(FurnaceModel):
             # plt.legend()
             # plt.show()
 
-        print("Tt_hc, total count = ", count_out)
+        # print("Tt_hc, total count = ", count_out)
         return T_new, t_new
 
     def xy_hc(self,z,T,t,fs,fl,x,y,w,p):
@@ -2643,10 +2643,6 @@ class HCFurnaceModel(FurnaceModel):
         Q1_high = (Q1_high[1:] + Q1_high[:-1]) / 2
         Q2_high = (Q2_high[1:] + Q2_high[:-1]) / 2   
 
-        z_diff = np.diff(z)
-        N = len(z_diff)
-        A_temp,a_temp = setAa_s(N, z_diff, KA, G1, G2, x_in, y_in, Q1, Q2)
-
         z_diff_low = np.diff(z_low)
         N_low = len(z_diff_low)
         xin_low = x[N_low]
@@ -2695,7 +2691,7 @@ class HCFurnaceModel(FurnaceModel):
         s = 0.5
         while(norm(x_new-x)/norm(x) >= 1e-3 or norm(y_new-y)/norm(y) >= 1e-3) and (count_out < limit):
             count_out += 1
-            print("xy_hc, count_out = ", count_out)
+            # print("xy_hc, count_out = ", count_out)
             # print("norm(x_new-x)/norm(x) = ", norm(x_new-x)/norm(x))
             # print("norm(y_new-y)/norm(y) = ", norm(y_new-y)/norm(y))
             x = s*x_new + (1-s)*x
@@ -2764,7 +2760,7 @@ class HCFurnaceModel(FurnaceModel):
             limit = 100
             while(norm(x_low_new-x_low) >= 1e-4*N_low**0.5 or norm(y_low_new-y_low) >= 1e-4*N_low**0.5) and (count_low < limit):
                 count_low += 1
-                print("xy_hc, count_low = ", count_low)
+                # print("xy_hc, count_low = ", count_low)
                 # print("norm(x_low_new-x_low) = ", norm(x_low_new-x_low))
                 # print("norm(y_low_new-y_low) = ", norm(y_low_new-y_low))
                 x_low, y_low = x_low_new, y_low_new
@@ -2786,7 +2782,7 @@ class HCFurnaceModel(FurnaceModel):
             limit = 100
             while(norm(x_high_new-x_high) >= 1e-4*N_high**0.5 or norm(y_high_new-y_high) >= 1e-4*N_high**0.5) and (count_high < limit):
                 count_high += 1
-                print("xy_hc, count_high = ", count_high)
+                # print("xy_hc, count_high = ", count_high)
                 # print("norm(x_high_new-x_high) = ", norm(x_high_new-x_high))
                 # print("norm(y_high_new-y_high) = ", norm(y_high_new-y_high))
                 x_high, y_high = x_high_new, y_high_new
@@ -2846,6 +2842,7 @@ class HCFurnaceModel(FurnaceModel):
         R6 = self.ReactionRate_6(z,T,t,x,y,w,p)
         R7 = self.ReactionRate_7(T,x,y,w,p)
 
+        R2 = np.where(t<1200,R2,R2+R1+R4+R7)
         a_list = 22.4*Az*kappa_5/F
         b_list = 22.4*Az*(w*R2 + w*R4 - kappa_5*self.params.F_0*(self.params.w_0+self.params.v_0)/F/(1+K) + (w-1)*R6 - R7) / F
 
@@ -2853,22 +2850,55 @@ class HCFurnaceModel(FurnaceModel):
         a_list[R5<=0] = 0
         b_list[R5<=0] = 22.4*Az[R5<=0]*(w[R5<=0]*R2[R5<=0] + w[R5<=0]*R4[R5<=0] + (w[R5<=0]-1)*R6[R5<=0] - R7[R5<=0]) / F[R5<=0]
         
-        a_list = (a_list[1:] + a_list[:-1]) / 2
-        b_list = (b_list[1:] + b_list[:-1]) / 2
+        a_list_low, a_list_high = a_list[t<1200], a_list[t>=1200]
+        b_list_low, b_list_high = b_list[t<1200], b_list[t>=1200]
 
-        z_diff = np.diff(z)
-        N = len(z_diff)
-        A_temp,a_temp = setAa_linear_n(N, z_diff, w_in, a_list, b_list)
-        X_temp = solve(A_temp, a_temp)
-        # print(X_temp.shape)
-        X_previous = w.copy()
-        w_new = np.asarray(X_temp).reshape(-1)
+        a_list_low = (a_list_low[1:] + a_list_low[:-1]) / 2
+        b_list_low = (b_list_low[1:] + b_list_low[:-1]) / 2
+        a_list_high = (a_list_high[1:] + a_list_high[:-1]) / 2
+        b_list_high = (b_list_high[1:] + b_list_high[:-1]) / 2
 
-        count = 0
+        z_low, z_high = z[t<1200], z[t>=1200]
+        w_low, w_high = w[t<1200], w[t>=1200]
+
+        z_diff_low = np.diff(z_low)
+        N_low = len(z_diff_low)
+        win_low = w[N_low]
+        A_low,a_low = setAa_linear_n(N_low, z_diff_low, win_low, a_list_low, b_list_low)
+        X_low = solve(A_low, a_low)
+        w_low_new = np.asarray(X_low).reshape(-1)
+        count_low = 0
+        limit = 100
+        while(norm(w_low_new-w_low) >= 1e-4*N_low**0.5) and (count_low < limit):
+            count_low += 1
+            w_low = w_low_new
+            A_low,a_low = setAa_linear_n(N_low, z_diff_low, win_low, a_list_low, b_list_low)
+            X_low = solve(A_low, a_low)
+            w_low_new = np.asarray(X_low).reshape(-1)
+
+        z_diff_high = np.diff(z_high)
+        N_high = len(z_diff_high)
+        win_high = w[-1]
+        A_high,a_high = setAa_linear_n(N_high, z_diff_high, win_high, a_list_high, b_list_high)
+        X_high = solve(A_high, a_high)
+        w_high_new = np.asarray(X_high).reshape(-1)
+        count_high = 0
+        limit = 100
+        while(norm(w_high_new-w_high) >= 1e-4*N_high**0.5) and (count_high < limit):
+            count_high += 1
+            w_high = w_high_new
+            A_high,a_high = setAa_linear_n(N_high, z_diff_high, win_high, a_list_high, b_list_high)
+            X_high = solve(A_high, a_high)
+            w_high_new = np.asarray(X_high).reshape(-1)
+
+        w_new = np.concatenate((w_low_new, w_high_new))
+
+        count_out = 0
         limit = 100
         s = 0.5
-        while(norm(a_temp - A_temp@X_previous) / norm(a_temp) >= 1e-3) and (count < limit):
-            count += 1
+        while(norm(w_new - w) / norm(w) >= 1e-3) and (count_out < limit):
+            count_out += 1
+            # print("w_hc, count_out = ", count_out)
             # print("norm(b-Ax)/norm(b) = ", norm(a_temp - A_temp@X_previous) / norm(a_temp))
             w = s*w_new + (1-s)*w
 
@@ -2886,22 +2916,58 @@ class HCFurnaceModel(FurnaceModel):
             R6 = self.ReactionRate_6(z,T,t,x,y,w,p)
             R7 = self.ReactionRate_7(T,x,y,w,p)
 
+            R2 = np.where(t<1200,R2,R2+R1+R4+R7)
             a_list = 22.4*Az*kappa_5/F
             b_list = 22.4*Az*(w*R2 + w*R4 - kappa_5*self.params.F_0*(self.params.w_0+self.params.v_0)/F/(1+K) + (w-1)*R6 - R7) / F
+
             R5 = self.ReactionRate_5(z,T,t,fs,x,y,w,p)
             a_list[R5<=0] = 0
             b_list[R5<=0] = 22.4*Az[R5<=0]*(w[R5<=0]*R2[R5<=0] + w[R5<=0]*R4[R5<=0] + (w[R5<=0]-1)*R6[R5<=0] - R7[R5<=0]) / F[R5<=0]
-            a_list = (a_list[1:] + a_list[:-1]) / 2
-            b_list = (b_list[1:] + b_list[:-1]) / 2
+            
+            a_list_low, a_list_high = a_list[t<1200], a_list[t>=1200]
+            b_list_low, b_list_high = b_list[t<1200], b_list[t>=1200]
 
-            z_diff = np.diff(z)
-            N = len(z_diff)
-            A_temp,a_temp = setAa_linear_n(N, z_diff, w_in, a_list, b_list)
-            X_temp = solve(A_temp, a_temp)
-            # print(X_temp.shape)
-            X_previous = w.copy()
+            a_list_low = (a_list_low[1:] + a_list_low[:-1]) / 2
+            b_list_low = (b_list_low[1:] + b_list_low[:-1]) / 2
+            a_list_high = (a_list_high[1:] + a_list_high[:-1]) / 2
+            b_list_high = (b_list_high[1:] + b_list_high[:-1]) / 2
 
-            w_new = np.asarray(X_temp).reshape(-1)
+            z_low, z_high = z[t<1200], z[t>=1200]
+            w_low, w_high = w[t<1200], w[t>=1200]
+
+            z_diff_low = np.diff(z_low)
+            N_low = len(z_diff_low)
+            win_low = w[N_low]
+            A_low,a_low = setAa_linear_n(N_low, z_diff_low, win_low, a_list_low, b_list_low)
+            X_low = solve(A_low, a_low)
+            w_low_new = np.asarray(X_low).reshape(-1)
+            count_low = 0
+            limit = 100
+            while(norm(w_low_new-w_low) >= 1e-4*N_low**0.5) and (count_low < limit):
+                count_low += 1
+                # print("w_hc, count_low = ", count_low)
+                w_low = w_low_new
+                A_low,a_low = setAa_linear_n(N_low, z_diff_low, win_low, a_list_low, b_list_low)
+                X_low = solve(A_low, a_low)
+                w_low_new = np.asarray(X_low).reshape(-1)
+
+            z_diff_high = np.diff(z_high)
+            N_high = len(z_diff_high)
+            win_high = w[-1]
+            A_high,a_high = setAa_linear_n(N_high, z_diff_high, win_high, a_list_high, b_list_high)
+            X_high = solve(A_high, a_high)
+            w_high_new = np.asarray(X_high).reshape(-1)
+            count_high = 0
+            limit = 100
+            while(norm(w_high_new-w_high) >= 1e-4*N_high**0.5) and (count_high < limit):
+                count_high += 1
+                # print("w_hc, count_high = ", count_high)
+                w_high = w_high_new
+                A_high,a_high = setAa_linear_n(N_high, z_diff_high, win_high, a_list_high, b_list_high)
+                X_high = solve(A_high, a_high)
+                w_high_new = np.asarray(X_high).reshape(-1)
+
+            w_new = np.concatenate((w_low_new, w_high_new))
         # print("norm(b-Ax)/norm(b) = ", norm(a_temp - A_temp@X_previous) / norm(a_temp))
         # print("w_hc, total count = ", count)
         return w_new
@@ -2975,7 +3041,7 @@ class HCFurnaceModel(FurnaceModel):
         count = 0
         limit = 100
         s = 0.5
-        while(norm(a_temp - A_temp@X_previous) / norm(a_temp) >= 1e-3) and (count < limit):
+        while(norm(fs_new-fs)/norm(fs) >= 1e-3) and (count < limit):
             count += 1
             # print("norm(b-Ax)/norm(b) = ", norm(a_temp - A_temp@X_previous) / norm(a_temp))
             fs = s*fs_new + (1-s)*fs
@@ -3030,7 +3096,7 @@ class HCFurnaceModel(FurnaceModel):
         count = 0
         limit = 100
         s = 0.5
-        while(norm(a_temp - A_temp@X_previous) / norm(a_temp) >= 1e-3) and (count < limit):
+        while(norm(fl_new-fl)/norm(fl) >= 1e-3) and (count < limit):
             count += 1
             # print("norm(b-Ax)/norm(b) = ", norm(a_temp - A_temp@X_previous) / norm(a_temp))
             fl = s*fl_new + (1-s)*fl
@@ -3072,11 +3138,8 @@ class HCFurnaceModel(FurnaceModel):
         R5 = self.ReactionRate_5(z,T,t,fs,x,y,w,p) # R5 (float): 1/3 Fe2O3 + H2 = 2/3 Fe + H2O reaction rate per unit volume of bed. [kmol H2 / m3 bed * hr]
         R6 = self.ReactionRate_6(z,T,t,x,y,w,p) # R6 (float): C + H2O = CO + H2 reaction rate per unit volume of bed. [kmol H2O / m3 bed * hr]
         R7 = self.ReactionRate_7(T,x,y,w,p) # R7 (float): C + H2O = CO + H2 reaction rate per unit volume of bed. [kmol H2 / m3 bed * hr]
-        # weight = smooth_heaviside(t-1200,k=1)
-        # R21 = R2
-        # R22 = R2 + R1+R4+R7
-        # R2 = (1-weight)*R21 + weight*R22
-        # R2 = np.where(t<1200, R2, R2 + R1+R4+R7)
+
+        R2 = np.where(t<1200, R2, R2 + R1+R4+R7)
 
         dd = -Az * ((16+12*0)*R1 + 12*R2 + 44*R4 + 16*R5 + 12*R6) / self.params.Fs
 
