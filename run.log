@@ -152,3 +152,16 @@ NameError: name 'z_diff' is not defined
 2026-01-31 16:04:28 - INFO - relative error of fl = 0.004731556276714317
 2026-01-31 16:04:28 - INFO - relative error of rhob = 0.00020315948912607163
 2026-01-31 16:04:46 - INFO - 程序结束
+2026-01-31 16:06:25 - INFO - 程序开始运行
+2026-01-31 16:06:25 - INFO - 测试 hc_5n4
+2026-01-31 17:30:17 - INFO - final relative error:
+2026-01-31 17:30:17 - INFO - relative error of T = 0.00025852384289389707
+2026-01-31 17:30:17 - INFO - relative error of t = 0.0002600679922373322
+2026-01-31 17:30:17 - INFO - relative error of x = 0.0001076555879478681
+2026-01-31 17:30:17 - INFO - relative error of y = 0.00035030835261541307
+2026-01-31 17:30:17 - INFO - relative error of w = 0.00010469763000250678
+2026-01-31 17:30:17 - INFO - relative error of p = 6.720395691130989e-05
+2026-01-31 17:30:17 - INFO - relative error of fs = 0.0006687463691582012
+2026-01-31 17:30:17 - INFO - relative error of fl = 0.004466578651359695
+2026-01-31 17:30:17 - INFO - relative error of rhob = 8.894969489607507e-05
+2026-01-31 18:11:35 - INFO - 程序结束
