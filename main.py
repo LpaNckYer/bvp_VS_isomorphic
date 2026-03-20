@@ -270,207 +270,382 @@ def test_hc_xy_raw():
     df = pd.DataFrame(np.vstack((z_guess, y_plot)).T, columns=['z'] + variables)
     # df.to_csv('test_xy_hc_raw_R2_1200.csv', index=False)
 
-def test_hc_5n4():
-    """
-    双循环
-    """
-    logging.info("测试 hc_5n4")
-    params = load_parameters("my_design")   # 调用已保存的参数
-    params2 = quick_modify(params, 
-                         case_name="my_design",
-                         initial_mesh=2000)
-    model = HCFurnaceModel(params2)
+# def test_hc_5n4():
+#     """
+#     双循环
+#     """
+#     logging.info("测试 hc_5n4")
+#     params = load_parameters("my_design")   # 调用已保存的参数
+#     params2 = quick_modify(params, 
+#                          case_name="my_design",
+#                          initial_mesh=2000)
+#     model = HCFurnaceModel(params2)
 
-    # 1. 初值设置（分段线性）
+#     # 1. 初值设置（分段线性）
+#     H0 = model.params.H0
+#     H1 = model.params.H1
+#     H2 = model.params.H2
+#     H3 = model.params.H3
+#     HH = model.params.HH
+
+#     # 0 m
+#     y0 = model.params.value0
+#     # 4 m
+#     y1 = model.params.value1
+#     # 12 m
+#     y2 = model.params.value2
+#     # 16 m
+#     y3 = model.params.value3
+#     # 20 m
+#     yH = model.params.valueH
+
+#     # 问题设置
+#     H_ctrl = [H0, H1, H2, H3, HH]
+    
+#     # 初始猜测（可以比较粗糙）
+#     T_ctrl = [y0[0], y1[0], y2[0], y3[0], yH[0]]
+#     t_ctrl = [y0[1], y1[1], y2[1], y3[1], yH[1]]
+#     fs_ctrl = [y0[2], y1[2], y2[2], y3[2], yH[2]]
+#     fl_ctrl = [y0[3], y1[3], y2[3], y3[3], yH[3]]
+#     x_ctrl = [y0[4], y1[4], y2[4], y3[4], yH[4]]
+#     y_ctrl = [y0[5], y1[5], y2[5], y3[5], yH[5]]
+#     w_ctrl = [y0[6], y1[6], y2[6], y3[6], yH[6]]
+#     rho_b_ctrl = [y0[7], y1[7], y2[7], y3[7], yH[7]]
+#     p_ctrl = [y0[8], y1[8], y2[8], y3[8], yH[8]]
+
+#     T = model.multi_value_interpolation(H_ctrl, T_ctrl, model.params.initial_mesh)
+#     t = model.multi_value_interpolation(H_ctrl, t_ctrl, model.params.initial_mesh)
+#     fs = model.multi_value_interpolation(H_ctrl, fs_ctrl, model.params.initial_mesh)
+#     fl = model.multi_value_interpolation(H_ctrl, fl_ctrl, model.params.initial_mesh)
+#     x = model.multi_value_interpolation(H_ctrl, x_ctrl, model.params.initial_mesh)
+#     y = model.multi_value_interpolation(H_ctrl, y_ctrl, model.params.initial_mesh)
+#     w = model.multi_value_interpolation(H_ctrl, w_ctrl, model.params.initial_mesh)
+#     rhob = model.multi_value_interpolation(H_ctrl, rho_b_ctrl, model.params.initial_mesh)
+#     p = model.multi_value_interpolation(H_ctrl, p_ctrl, model.params.initial_mesh)
+
+#     z_guess = np.linspace(H0, HH, model.params.initial_mesh)
+
+#     T_new, t_new = model.Tt_hc(z_guess, T, t, fs, fl, x, y, w, p, rhob)
+#     x_new, y_new = model.xy_hc(z_guess, T, t, fs, fl, x, y, w, p)
+#     fl_new = model.fl_hc(z_guess, T, t, fl, x, y, w, p)
+
+#     RE_T = norm(T_new - T)/norm(T)
+#     RE_t = norm(t_new - t)/norm(t)
+#     RE_x = norm(x_new - x)/norm(x)
+#     RE_y = norm(y_new - y)/norm(y)
+#     RE_fl = norm(fl_new - fl)/norm(fl)
+#     count = 0
+#     while(RE_T >= 1e-3 or RE_t >= 1e-3 or RE_x >= 1e-3 or RE_y >= 1e-3 or RE_fl >= 1e-2) and (count < 10000):
+#         count += 1
+#         # print("first loop count = ", count)
+#         # print("relative error of T = ", RE_T)
+#         # print("relative error of t = ", RE_t)
+#         # print("relative error of x = ", RE_x)
+#         # print("relative error of y = ", RE_y)
+#         # print("relative error of fl = ", RE_fl)
+#         T = T_new
+#         t = t_new
+#         x = x_new
+#         y = y_new
+#         fl = fl_new
+#         T_new, t_new = model.Tt_hc(z_guess, T, t, fs, fl, x, y, w, p, rhob)
+#         x_new, y_new = model.xy_hc(z_guess, T, t, fs, fl, x, y, w, p)
+#         fl_new = model.fl_hc(z_guess, T, t, fl, x, y, w, p)
+#         RE_T = norm(T_new - T)/norm(T)
+#         RE_t = norm(t_new - t)/norm(t)
+#         RE_x = norm(x_new - x)/norm(x)
+#         RE_y = norm(y_new - y)/norm(y)
+#         RE_fl = norm(fl_new - fl)/norm(fl)
+
+#     # 外层循环：wfsprhob
+#     w_new = model.w_hc(z_guess, T, t, fs, fl, x, y, w, p)
+#     fs_new = model.fs_hc(z_guess, T, t, fs, x, y, w, p)
+#     p_new = model.p_hc(z_guess, T, x, y, w, p)
+#     rhob_new = model.rhob_hc(z_guess, T, t, fs, fl, x, y, w, p, rhob)
+#     RE_w = norm(w_new - w)/norm(w)
+#     RE_fs = norm(fs_new - fs)/norm(fs)
+#     RE_p = norm(p_new - p)/norm(p)
+#     RE_rhob = norm(rhob_new - rhob)/norm(rhob)
+
+#     count_out = 0
+#     while(RE_w >= 1e-3 or RE_fs >= 1e-3 or RE_p >= 1e-3 or RE_rhob >= 1e-3) and (count_out < 10000):
+#         count_out += 1
+#         print("count_out = ", count_out)
+#         # 内层循环：wfsprhob
+#         count_in = 0
+#         while(RE_w >= 1e-3 or RE_fs >= 1e-3 or RE_p >= 1e-3 or RE_rhob >= 1e-3) and (count_out < 100):
+            
+#             count_in += 1
+#             # print("count_in = ", count_in)
+#             # print("relative error of w = ", RE_w)
+#             # print("relative error of fs = ", RE_fs)
+#             # print("relative error of p = ", RE_p)
+#             # print("relative error of rhob = ", RE_rhob)
+#             w = w_new
+#             fs = fs_new
+#             p = p_new
+#             rhob = rhob_new
+#             w_new = model.w_hc(z_guess, T, t, fs, fl, x, y, w, p)
+#             fs_new = model.fs_hc(z_guess, T, t, fs, x, y, w, p)
+#             p_new = model.p_hc(z_guess, T, x, y, w, p)
+#             rhob_new = model.rhob_hc(z_guess, T, t, fs, fl, x, y, w, p, rhob)
+#             RE_w = norm(w_new - w)/norm(w)
+#             RE_fs = norm(fs_new - fs)/norm(fs)
+#             RE_p = norm(p_new - p)/norm(p)
+#             RE_rhob = norm(rhob_new - rhob)/norm(rhob)
+#         # print("count_in = ", count_in)
+#         # print("relative error of w = ", RE_w)
+#         # print("relative error of fs = ", RE_fs)
+#         # print("relative error of p = ", RE_p)
+#         # print("relative error of rhob = ", RE_rhob)
+
+#         # 内层循环：Ttxyfsfl
+#         T_new, t_new = model.Tt_hc(z_guess, T, t, fs, fl, x, y, w, p, rhob)
+#         x_new, y_new = model.xy_hc(z_guess, T, t, fs, fl, x, y, w, p)
+#         fl_new = model.fl_hc(z_guess, T, t, fl, x, y, w, p)
+#         RE_T = norm(T_new - T)/norm(T)
+#         RE_t = norm(t_new - t)/norm(t)
+#         RE_x = norm(x_new - x)/norm(x)
+#         RE_y = norm(y_new - y)/norm(y)
+#         RE_fl = norm(fl_new - fl)/norm(fl)
+#         count_in = 0
+#         while(RE_T >= 1e-3 or RE_t >= 1e-3 or RE_x >= 1e-3 or RE_y >= 1e-3 or RE_fl >= 1e-3) and (count_in < 100):
+#             count_in += 1
+#             # print("count_in = ", count_in)
+#             # print("relative error of T = ", RE_T)
+#             # print("relative error of t = ", RE_t)
+#             # print("relative error of x = ", RE_x)
+#             # print("relative error of y = ", RE_y)
+#             # print("relative error of fl = ", RE_fl)
+#             T = T_new
+#             t = t_new
+#             x = x_new
+#             y = y_new
+#             fl = fl_new
+#             T_new, t_new = model.Tt_hc(z_guess, T, t, fs, fl, x, y, w, p, rhob)
+#             x_new, y_new = model.xy_hc(z_guess, T, t, fs, fl, x, y, w, p)
+#             fl_new = model.fl_hc(z_guess, T, t, fl, x, y, w, p)
+#             RE_T = norm(T_new - T)/norm(T)
+#             RE_t = norm(t_new - t)/norm(t)
+#             RE_x = norm(x_new - x)/norm(x)
+#             RE_y = norm(y_new - y)/norm(y)
+#             RE_fl = norm(fl_new - fl)/norm(fl)
+
+#         # print("count_in = ", count_in)
+#         # print("relative error of T = ", RE_T)
+#         # print("relative error of t = ", RE_t)
+#         # print("relative error of x = ", RE_x)
+#         # print("relative error of y = ", RE_y)
+#         # print("relative error of fl = ", RE_fl)
+#         w_new = model.w_hc(z_guess, T, t, fs, fl, x, y, w, p)
+#         fs_new = model.fs_hc(z_guess, T, t, fs, x, y, w, p)
+#         p_new = model.p_hc(z_guess, T, x, y, w, p)
+#         rhob_new = model.rhob_hc(z_guess, T, t, fs, fl, x, y, w, p, rhob)
+#         RE_w = norm(w_new - w)/norm(w)
+#         RE_fs = norm(fs_new - fs)/norm(fs)
+#         RE_p = norm(p_new - p)/norm(p)
+#         RE_rhob = norm(rhob_new - rhob)/norm(rhob)
+
+#     logging.info("final relative error:")
+#     logging.info(f"relative error of T = {RE_T}")
+#     logging.info(f"relative error of t = {RE_t}")
+#     logging.info(f"relative error of x = {RE_x}")
+#     logging.info(f"relative error of y = {RE_y}")
+#     logging.info(f"relative error of w = {RE_w}")
+#     logging.info(f"relative error of p = {RE_p}")
+#     logging.info(f"relative error of fs = {RE_fs}")
+#     logging.info(f"relative error of fl = {RE_fl}")
+#     logging.info(f"relative error of rhob = {RE_rhob}")
+#     # 结果绘图
+#     y_plot = [T_new, t_new, fs_new, fl_new, x_new, y_new, w_new, rhob_new, p_new]
+#     plt.figure(figsize=(12, 8))
+#     variables = ['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']
+#     for i in range(9):
+#         plt.subplot(3, 3, i+1)
+#         plt.plot(z_guess, y_plot[i])
+#         plt.ylabel(variables[i])
+#         plt.xlabel('z')
+#     plt.tight_layout()
+#     plt.show()
+
+#     # 保存结果
+#     df = pd.DataFrame(np.vstack((z_guess, y_plot)).T, columns=['z'] + variables)
+#     df.to_csv('test_hc_5n4_R2_1200_linear_N=2000.csv', index=False)   
+
+
+# code from copilot
+# 收敛容忍度
+TOL_T = 1e-3
+TOL_t = 1e-3
+TOL_XY = 1e-3
+TOL_FL = 1e-2
+TOL_W = 1e-3
+TOL_FS = 1e-3
+TOL_P = 1e-3
+TOL_RHOB = 1e-3
+
+# 最大迭代循环
+MAX_INNER_LOOP = 100
+MAX_OUTER_LOOP = 10000
+
+def rel_err(new, old):
+    denom = max(norm(old), 1e-16)
+    return norm(new - old) / denom
+
+def init_state_from_model(model):
     H0 = model.params.H0
     H1 = model.params.H1
     H2 = model.params.H2
     H3 = model.params.H3
     HH = model.params.HH
 
-    # 0 m
     y0 = model.params.value0
-    # 4 m
     y1 = model.params.value1
-    # 12 m
     y2 = model.params.value2
-    # 16 m
     y3 = model.params.value3
-    # 20 m
     yH = model.params.valueH
 
-    # 问题设置
     H_ctrl = [H0, H1, H2, H3, HH]
-    
-    # 初始猜测（可以比较粗糙）
-    T_ctrl = [y0[0], y1[0], y2[0], y3[0], yH[0]]
-    t_ctrl = [y0[1], y1[1], y2[1], y3[1], yH[1]]
-    fs_ctrl = [y0[2], y1[2], y2[2], y3[2], yH[2]]
-    fl_ctrl = [y0[3], y1[3], y2[3], y3[3], yH[3]]
-    x_ctrl = [y0[4], y1[4], y2[4], y3[4], yH[4]]
-    y_ctrl = [y0[5], y1[5], y2[5], y3[5], yH[5]]
-    w_ctrl = [y0[6], y1[6], y2[6], y3[6], yH[6]]
-    rho_b_ctrl = [y0[7], y1[7], y2[7], y3[7], yH[7]]
-    p_ctrl = [y0[8], y1[8], y2[8], y3[8], yH[8]]
-
-    T = model.multi_value_interpolation(H_ctrl, T_ctrl, model.params.initial_mesh)
-    t = model.multi_value_interpolation(H_ctrl, t_ctrl, model.params.initial_mesh)
-    fs = model.multi_value_interpolation(H_ctrl, fs_ctrl, model.params.initial_mesh)
-    fl = model.multi_value_interpolation(H_ctrl, fl_ctrl, model.params.initial_mesh)
-    x = model.multi_value_interpolation(H_ctrl, x_ctrl, model.params.initial_mesh)
-    y = model.multi_value_interpolation(H_ctrl, y_ctrl, model.params.initial_mesh)
-    w = model.multi_value_interpolation(H_ctrl, w_ctrl, model.params.initial_mesh)
-    rhob = model.multi_value_interpolation(H_ctrl, rho_b_ctrl, model.params.initial_mesh)
-    p = model.multi_value_interpolation(H_ctrl, p_ctrl, model.params.initial_mesh)
+    state = {
+        "T": model.multi_value_interpolation(H_ctrl, [y0[0], y1[0], y2[0], y3[0], yH[0]], model.params.initial_mesh),
+        "t": model.multi_value_interpolation(H_ctrl, [y0[1], y1[1], y2[1], y3[1], yH[1]], model.params.initial_mesh),
+        "fs": model.multi_value_interpolation(H_ctrl, [y0[2], y1[2], y2[2], y3[2], yH[2]], model.params.initial_mesh),
+        "fl": model.multi_value_interpolation(H_ctrl, [y0[3], y1[3], y2[3], y3[3], yH[3]], model.params.initial_mesh),
+        "x": model.multi_value_interpolation(H_ctrl, [y0[4], y1[4], y2[4], y3[4], yH[4]], model.params.initial_mesh),
+        "y": model.multi_value_interpolation(H_ctrl, [y0[5], y1[5], y2[5], y3[5], yH[5]], model.params.initial_mesh),
+        "w": model.multi_value_interpolation(H_ctrl, [y0[6], y1[6], y2[6], y3[6], yH[6]], model.params.initial_mesh),
+        "rhob": model.multi_value_interpolation(H_ctrl, [y0[7], y1[7], y2[7], y3[7], yH[7]], model.params.initial_mesh),
+        "p": model.multi_value_interpolation(H_ctrl, [y0[8], y1[8], y2[8], y3[8], yH[8]], model.params.initial_mesh),
+    }
 
     z_guess = np.linspace(H0, HH, model.params.initial_mesh)
+    return z_guess, state
 
-    T_new, t_new = model.Tt_hc(z_guess, T, t, fs, fl, x, y, w, p, rhob)
-    x_new, y_new = model.xy_hc(z_guess, T, t, fs, fl, x, y, w, p)
-    fl_new = model.fl_hc(z_guess, T, t, fl, x, y, w, p)
+def update_Ttxyfl(model, z, state):
+    T_new, t_new = model.Tt_hc(
+        z,
+        state["T"], state["t"], state["fs"], state["fl"],
+        state["x"], state["y"], state["w"], state["p"], state["rhob"]
+    )
+    x_new, y_new = model.xy_hc(
+        z,
+        state["T"], state["t"], state["fs"], state["fl"],
+        state["x"], state["y"], state["w"], state["p"]
+    )
+    fl_new = model.fl_hc(
+        z,
+        state["T"], state["t"], state["fl"],
+        state["x"], state["y"], state["w"], state["p"]
+    )
+    new_state = state.copy()
+    new_state.update({"T": T_new, "t": t_new, "x": x_new, "y": y_new, "fl": fl_new})
+    return new_state
 
-    RE_T = norm(T_new - T)/norm(T)
-    RE_t = norm(t_new - t)/norm(t)
-    RE_x = norm(x_new - x)/norm(x)
-    RE_y = norm(y_new - y)/norm(y)
-    RE_fl = norm(fl_new - fl)/norm(fl)
-    count = 0
-    while(RE_T >= 1e-3 or RE_t >= 1e-3 or RE_x >= 1e-3 or RE_y >= 1e-3 or RE_fl >= 1e-2) and (count < 10000):
-        count += 1
-        # print("first loop count = ", count)
-        # print("relative error of T = ", RE_T)
-        # print("relative error of t = ", RE_t)
-        # print("relative error of x = ", RE_x)
-        # print("relative error of y = ", RE_y)
-        # print("relative error of fl = ", RE_fl)
-        T = T_new
-        t = t_new
-        x = x_new
-        y = y_new
-        fl = fl_new
-        T_new, t_new = model.Tt_hc(z_guess, T, t, fs, fl, x, y, w, p, rhob)
-        x_new, y_new = model.xy_hc(z_guess, T, t, fs, fl, x, y, w, p)
-        fl_new = model.fl_hc(z_guess, T, t, fl, x, y, w, p)
-        RE_T = norm(T_new - T)/norm(T)
-        RE_t = norm(t_new - t)/norm(t)
-        RE_x = norm(x_new - x)/norm(x)
-        RE_y = norm(y_new - y)/norm(y)
-        RE_fl = norm(fl_new - fl)/norm(fl)
+def update_wfsprhob(model, z, state):
+    w_new = model.w_hc(
+        z,
+        state["T"], state["t"], state["fs"], state["fl"],
+        state["x"], state["y"], state["w"], state["p"]
+    )
+    fs_new = model.fs_hc(
+        z,
+        state["T"], state["t"], state["fs"],
+        state["x"], state["y"], state["w"], state["p"]
+    )
+    p_new = model.p_hc(
+        z,
+        state["T"], state["x"], state["y"], state["w"], state["p"]
+    )
+    rhob_new = model.rhob_hc(
+        z,
+        state["T"], state["t"], state["fs"], state["fl"],
+        state["x"], state["y"], state["w"], state["p"], state["rhob"]
+    )
+    new_state = state.copy()
+    new_state.update({"w": w_new, "fs": fs_new, "p": p_new, "rhob": rhob_new})
+    return new_state
 
-    # 外层循环：wfsprhob
-    w_new = model.w_hc(z_guess, T, t, fs, fl, x, y, w, p)
-    fs_new = model.fs_hc(z_guess, T, t, fs, x, y, w, p)
-    p_new = model.p_hc(z_guess, T, x, y, w, p)
-    rhob_new = model.rhob_hc(z_guess, T, t, fs, fl, x, y, w, p, rhob)
-    RE_w = norm(w_new - w)/norm(w)
-    RE_fs = norm(fs_new - fs)/norm(fs)
-    RE_p = norm(p_new - p)/norm(p)
-    RE_rhob = norm(rhob_new - rhob)/norm(rhob)
+def converge_ttx_yfl(model, z, state):
+    for i in range(MAX_INNER_LOOP):
+        next_state = update_Ttxyfl(model, z, state)
 
-    count_out = 0
-    while(RE_w >= 1e-3 or RE_fs >= 1e-3 or RE_p >= 1e-3 or RE_rhob >= 1e-3) and (count_out < 10000):
-        count_out += 1
-        print("count_out = ", count_out)
-        # 内层循环：wfsprhob
-        count_in = 0
-        while(RE_w >= 1e-3 or RE_fs >= 1e-3 or RE_p >= 1e-3 or RE_rhob >= 1e-3) and (count_out < 100):
-            
-            count_in += 1
-            # print("count_in = ", count_in)
-            # print("relative error of w = ", RE_w)
-            # print("relative error of fs = ", RE_fs)
-            # print("relative error of p = ", RE_p)
-            # print("relative error of rhob = ", RE_rhob)
-            w = w_new
-            fs = fs_new
-            p = p_new
-            rhob = rhob_new
-            w_new = model.w_hc(z_guess, T, t, fs, fl, x, y, w, p)
-            fs_new = model.fs_hc(z_guess, T, t, fs, x, y, w, p)
-            p_new = model.p_hc(z_guess, T, x, y, w, p)
-            rhob_new = model.rhob_hc(z_guess, T, t, fs, fl, x, y, w, p, rhob)
-            RE_w = norm(w_new - w)/norm(w)
-            RE_fs = norm(fs_new - fs)/norm(fs)
-            RE_p = norm(p_new - p)/norm(p)
-            RE_rhob = norm(rhob_new - rhob)/norm(rhob)
-        # print("count_in = ", count_in)
-        # print("relative error of w = ", RE_w)
-        # print("relative error of fs = ", RE_fs)
-        # print("relative error of p = ", RE_p)
-        # print("relative error of rhob = ", RE_rhob)
+        err_T = rel_err(next_state["T"], state["T"])
+        err_t = rel_err(next_state["t"], state["t"])
+        err_x = rel_err(next_state["x"], state["x"])
+        err_y = rel_err(next_state["y"], state["y"])
+        err_fl = rel_err(next_state["fl"], state["fl"])
 
-        # 内层循环：Ttxyfsfl
-        T_new, t_new = model.Tt_hc(z_guess, T, t, fs, fl, x, y, w, p, rhob)
-        x_new, y_new = model.xy_hc(z_guess, T, t, fs, fl, x, y, w, p)
-        fl_new = model.fl_hc(z_guess, T, t, fl, x, y, w, p)
-        RE_T = norm(T_new - T)/norm(T)
-        RE_t = norm(t_new - t)/norm(t)
-        RE_x = norm(x_new - x)/norm(x)
-        RE_y = norm(y_new - y)/norm(y)
-        RE_fl = norm(fl_new - fl)/norm(fl)
-        count_in = 0
-        while(RE_T >= 1e-3 or RE_t >= 1e-3 or RE_x >= 1e-3 or RE_y >= 1e-3 or RE_fl >= 1e-3) and (count_in < 100):
-            count_in += 1
-            # print("count_in = ", count_in)
-            # print("relative error of T = ", RE_T)
-            # print("relative error of t = ", RE_t)
-            # print("relative error of x = ", RE_x)
-            # print("relative error of y = ", RE_y)
-            # print("relative error of fl = ", RE_fl)
-            T = T_new
-            t = t_new
-            x = x_new
-            y = y_new
-            fl = fl_new
-            T_new, t_new = model.Tt_hc(z_guess, T, t, fs, fl, x, y, w, p, rhob)
-            x_new, y_new = model.xy_hc(z_guess, T, t, fs, fl, x, y, w, p)
-            fl_new = model.fl_hc(z_guess, T, t, fl, x, y, w, p)
-            RE_T = norm(T_new - T)/norm(T)
-            RE_t = norm(t_new - t)/norm(t)
-            RE_x = norm(x_new - x)/norm(x)
-            RE_y = norm(y_new - y)/norm(y)
-            RE_fl = norm(fl_new - fl)/norm(fl)
+        if i % 5 == 0:  # 每5次输出一次
+            logging.info(
+                f"[inner {i+1}/{MAX_INNER_LOOP}] "
+                f"err_T={err_T:.3e}, err_t={err_t:.3e}, "
+                f"err_x={err_x:.3e}, err_y={err_y:.3e}, err_fl={err_fl:.3e}"
+            )
 
-        # print("count_in = ", count_in)
-        # print("relative error of T = ", RE_T)
-        # print("relative error of t = ", RE_t)
-        # print("relative error of x = ", RE_x)
-        # print("relative error of y = ", RE_y)
-        # print("relative error of fl = ", RE_fl)
-        w_new = model.w_hc(z_guess, T, t, fs, fl, x, y, w, p)
-        fs_new = model.fs_hc(z_guess, T, t, fs, x, y, w, p)
-        p_new = model.p_hc(z_guess, T, x, y, w, p)
-        rhob_new = model.rhob_hc(z_guess, T, t, fs, fl, x, y, w, p, rhob)
-        RE_w = norm(w_new - w)/norm(w)
-        RE_fs = norm(fs_new - fs)/norm(fs)
-        RE_p = norm(p_new - p)/norm(p)
-        RE_rhob = norm(rhob_new - rhob)/norm(rhob)
+        if (err_T < TOL_T and err_t < TOL_t and err_x < TOL_XY
+                and err_y < TOL_XY and err_fl < TOL_FL):
+            logging.info(f"inner loop converged at iter {i+1}")
+            return next_state
 
-    logging.info("final relative error:")
-    logging.info(f"relative error of T = {RE_T}")
-    logging.info(f"relative error of t = {RE_t}")
-    logging.info(f"relative error of x = {RE_x}")
-    logging.info(f"relative error of y = {RE_y}")
-    logging.info(f"relative error of w = {RE_w}")
-    logging.info(f"relative error of p = {RE_p}")
-    logging.info(f"relative error of fs = {RE_fs}")
-    logging.info(f"relative error of fl = {RE_fl}")
-    logging.info(f"relative error of rhob = {RE_rhob}")
-    # 结果绘图
-    y_plot = [T_new, t_new, fs_new, fl_new, x_new, y_new, w_new, rhob_new, p_new]
-    plt.figure(figsize=(12, 8))
+        state = next_state
+
+    logging.warning("inner loop hit max iterations")
+    return state
+
+
+def converge_full(model, z, state):
+    for i in range(MAX_OUTER_LOOP):
+        logging.info(f"[outer {i+1}/{MAX_OUTER_LOOP}] start")
+        state = converge_ttx_yfl(model, z, state)
+
+        next_state = update_wfsprhob(model, z, state)
+        err_w = rel_err(next_state["w"], state["w"])
+        err_fs = rel_err(next_state["fs"], state["fs"])
+        err_p = rel_err(next_state["p"], state["p"])
+        err_rhob = rel_err(next_state["rhob"], state["rhob"])
+
+        logging.info(
+            f"[outer {i+1}] err_w={err_w:.3e}, err_fs={err_fs:.3e}, "
+            f"err_p={err_p:.3e}, err_rhob={err_rhob:.3e}"
+        )
+
+        if (err_w < TOL_W and err_fs < TOL_FS
+                and err_p < TOL_P and err_rhob < TOL_RHOB):
+            logging.info(f"outer loop converged at iter {i+1}")
+            return next_state
+
+        state = next_state
+
+    logging.warning("outer loop hit max iterations")
+    return state
+
+def test_hc_5n4():
+    logging.info("测试 hc_5n4")
+    params = load_parameters("my_design")
+    params2 = quick_modify(params, case_name="my_design", initial_mesh=2000)
+    model = HCFurnaceModel(params2)
+
+    z_guess, state = init_state_from_model(model)
+
+    state = converge_full(model, z_guess, state)
+
+    # y_plot 均保持和原来兼容顺序
     variables = ['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']
-    for i in range(9):
-        plt.subplot(3, 3, i+1)
-        plt.plot(z_guess, y_plot[i])
-        plt.ylabel(variables[i])
+    y_plot = [state[var] for var in variables]
+
+    # 画图输出
+    plt.figure(figsize=(12, 8))
+    for i, var in enumerate(variables, start=1):
+        plt.subplot(3, 3, i)
+        plt.plot(z_guess, state[var], label=var)
+        plt.ylabel(var)
         plt.xlabel('z')
     plt.tight_layout()
     plt.show()
 
-    # 保存结果
-    df = pd.DataFrame(np.vstack((z_guess, y_plot)).T, columns=['z'] + variables)
-    df.to_csv('test_hc_5n4_R2_1200_linear_N=2000.csv', index=False)   
+    result_df = pd.DataFrame(np.vstack([z_guess] + y_plot).T, columns=['z'] + variables)
+    result_df.to_csv('NEW_test_hc_5n4_R2_1200_linear_N=2000.csv', index=False)
+    logging.info("test_hc_5n4 done")
 
 def main():
     """主函数"""

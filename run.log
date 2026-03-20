@@ -165,3 +165,36 @@ NameError: name 'z_diff' is not defined
 2026-01-31 17:30:17 - INFO - relative error of fl = 0.004466578651359695
 2026-01-31 17:30:17 - INFO - relative error of rhob = 8.894969489607507e-05
 2026-01-31 18:11:35 - INFO - 程序结束
+2026-03-20 08:55:52 - INFO - 程序开始运行
+2026-03-20 08:55:52 - INFO - 测试 hc_5n4
+2026-03-20 09:04:42 - INFO - 程序结束
+2026-03-20 09:05:53 - INFO - 程序开始运行
+2026-03-20 09:05:53 - INFO - 测试 hc_5n4
+2026-03-20 09:05:53 - INFO - [outer 1/10000] start
+2026-03-20 09:07:24 - INFO - [inner 1/100] err_T=2.020e-01, err_t=1.916e-01, err_x=1.794e-01, err_y=5.679e-01, err_fl=2.456e-01
+2026-03-20 09:11:58 - INFO - [inner 6/100] err_T=1.510e-03, err_t=1.514e-03, err_x=8.119e-03, err_y=2.012e-02, err_fl=1.680e-01
+2026-03-20 09:12:55 - INFO - inner loop converged at iter 9
+2026-03-20 09:12:58 - INFO - [outer 1] err_w=1.895e-01, err_fs=1.313e-01, err_p=2.516e-02, err_rhob=2.763e-02
+2026-03-20 09:12:58 - INFO - [outer 2/10000] start
+2026-03-20 09:13:59 - INFO - [inner 1/100] err_T=1.645e-02, err_t=1.649e-02, err_x=5.671e-02, err_y=9.515e-02, err_fl=5.589e-03
+2026-03-20 09:15:38 - INFO - inner loop converged at iter 5
+2026-03-20 09:15:40 - INFO - [outer 2] err_w=1.711e-02, err_fs=2.522e-02, err_p=6.192e-03, err_rhob=9.423e-03
+2026-03-20 09:15:40 - INFO - [outer 3/10000] start
+2026-03-20 09:16:23 - INFO - [inner 1/100] err_T=4.999e-03, err_t=4.969e-03, err_x=1.983e-02, err_y=3.160e-02, err_fl=2.450e-03
+2026-03-20 09:17:09 - INFO - inner loop converged at iter 4
+2026-03-20 09:17:10 - INFO - [outer 3] err_w=1.533e-03, err_fs=1.237e-02, err_p=1.413e-03, err_rhob=4.608e-03
+2026-03-20 09:17:10 - INFO - [outer 4/10000] start
+2026-03-20 09:17:46 - INFO - [inner 1/100] err_T=2.067e-03, err_t=2.074e-03, err_x=7.054e-03, err_y=1.180e-02, err_fl=3.310e-03
+2026-03-20 09:18:15 - INFO - inner loop converged at iter 4
+2026-03-20 09:18:16 - INFO - [outer 4] err_w=1.055e-03, err_fs=5.266e-03, err_p=7.099e-04, err_rhob=1.306e-03
+2026-03-20 09:18:16 - INFO - [outer 5/10000] start
+2026-03-20 09:18:41 - INFO - [inner 1/100] err_T=8.604e-04, err_t=8.657e-04, err_x=2.728e-03, err_y=4.319e-03, err_fl=5.956e-03
+2026-03-20 09:19:02 - INFO - inner loop converged at iter 4
+2026-03-20 09:19:02 - INFO - [outer 5] err_w=2.420e-04, err_fs=2.489e-03, err_p=2.340e-04, err_rhob=5.537e-04
+2026-03-20 09:19:02 - INFO - [outer 6/10000] start
+2026-03-20 09:19:17 - INFO - [inner 1/100] err_T=4.425e-04, err_t=4.478e-04, err_x=1.157e-03, err_y=1.661e-03, err_fl=6.868e-03
+2026-03-20 09:19:21 - INFO - inner loop converged at iter 2
+2026-03-20 09:19:22 - INFO - [outer 6] err_w=1.325e-04, err_fs=8.316e-04, err_p=1.855e-04, err_rhob=3.999e-04
+2026-03-20 09:19:22 - INFO - outer loop converged at iter 6
+2026-03-20 15:49:14 - INFO - test_hc_5n4 done
+2026-03-20 15:49:14 - INFO - 程序结束

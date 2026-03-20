@@ -65,33 +65,27 @@ p = model.multi_value_interpolation(H_ctrl, p_ctrl, model.params.initial_mesh)
 z_guess = np.linspace(H0, HH, model.params.initial_mesh)
 
 # 读取CSV文件
-df = pd.read_csv('my_design_0.0-20.0m_1e-5_raw.csv')
-df_2 = pd.read_csv('test_hc_all_raw_1e-4.csv')
-df_hc = pd.read_csv('test_hc_5n4_1e-3_linear.csv')
-df_hc2 = pd.read_csv('test_hc_5n4_1e-3_linear_N=100.csv')
-df_hc3 = pd.read_csv('test_hc_5n4_1e-3_linear_N=20.csv')
-df_hc4 = pd.read_csv('test_hc_5n4_1e-3_linear_N=10.csv')
-# df_back = pd.read_csv('my_design_0.0-20.0m_xy_back.csv')
+df = pd.read_csv('R2_1200_2e-5_raw.csv')
+df_hc = pd.read_csv('test_hc_5n4_1e-3_linear_N=100.csv')
+df_hc2 = pd.read_csv('test_hc_5n4_R2_1200_linear_N=200.csv')
+df_hc3 = pd.read_csv('test_hc_5n4_R2_1200_linear_N=500.csv')
+df_hc4 = pd.read_csv('test_hc_5n4_R2_1200_linear_N=2000.csv')
 
 
 # 生成均匀分布的索引
 indices= np.linspace(0, len(df)-1, len(df), dtype=int)
-indices_2 = np.linspace(0, len(df_2)-1, len(df_2), dtype=int)
 indices_hc = np.linspace(0, len(df_hc)-1, len(df_hc), dtype=int)
 indices_hc2 = np.linspace(0, len(df_hc2)-1, len(df_hc2), dtype=int)
 indices_hc3 = np.linspace(0, len(df_hc3)-1, len(df_hc3), dtype=int)
 indices_hc4 = np.linspace(0, len(df_hc4)-1, len(df_hc4), dtype=int)
-# indices_back = np.linspace(0, len(df_back)-1, len(df_back), dtype=int)
 
 
 # 按索引取行
 sampled_df = df.iloc[indices]
-sampled_df_2 = df_2.iloc[indices_2]
 sampled_df_hc = df_hc.iloc[indices_hc]
 sampled_df_hc2 = df_hc2.iloc[indices_hc2]
 sampled_df_hc3 = df_hc3.iloc[indices_hc3]
 sampled_df_hc4 = df_hc4.iloc[indices_hc4]
-# sampled_df_back = df_back.iloc[indices_back]
 sampled_init = pd.DataFrame(np.vstack((z_guess, T, t, fs, fl, x, y, w, rhob, p)).T, columns=['z', 'T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p'])
 
 # # 保存结果
@@ -127,26 +121,22 @@ sampled_init = pd.DataFrame(np.vstack((z_guess, T, t, fs, fl, x, y, w, rhob, p))
 plt.rcParams['font.family'] = ['SimHei', 'Times New Roman']
 # 作图
 y_bvp = sampled_df
-y_bvp_2 = sampled_df_2
 y_bvp_hc = sampled_df_hc
 y_bvp_hc2 = sampled_df_hc2
 y_bvp_hc3 = sampled_df_hc3
 y_bvp_hc4 = sampled_df_hc4
-# y_bvp_back = sampled_df_back
 y_init = sampled_init
 plt.figure(figsize=(12, 8))
 variables = ['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']
 y_labels = ['T(K)', 't(K)', 'fs(-)', 'fl(-)', 'x(-)', 'y(-)', 'w(-)', 'rhob(kg/m^3 bed)', 'p(Kg/m2)']
 for i in range(9):
     plt.subplot(3, 3, i+1)
-    plt.plot(y_init['z'], y_init[variables[i]], label = '分段线性初值', linestyle='--') # test_xy_hc.csv
-    # plt.plot(y_bvp['z'], y_bvp[variables[i]], label = 'bvp_tol=1e-5')       # my_design_0.0-20.0m_normalized.csv
-    # plt.plot(y_bvp_2['z'], y_bvp_2[variables[i]], label = 'hc_9var_raw')   # R2e15_1e-3.csv
-    plt.plot(y_bvp_hc['z'], y_bvp_hc[variables[i]], label = '同构化求解结果 N=2000') # test_xy_hc.csv
-    plt.plot(y_bvp_hc2['z'], y_bvp_hc2[variables[i]], label = '同构化求解结果 N=100',linestyle=':',linewidth=2.0) # test_xy_hc.csv
-    # plt.plot(y_bvp_hc3['z'], y_bvp_hc3[variables[i]], label = 'hc_5n4_linear_N=20') # test_xy_hc.csv
-    # plt.plot(y_bvp_hc4['z'], y_bvp_hc4[variables[i]], label = 'hc_5n4_linear_N=10') # test_xy_hc.csv
-    # plt.plot(y_bvp_back['z'], y_bvp_back[variables[i]], label = 'xy_back') # my_design_0.0-20.0m_xy_back.csv
+    plt.plot(y_init['z'], y_init[variables[i]], label = '分段线性初值', linestyle='--') # 
+    plt.plot(y_bvp['z'], y_bvp[variables[i]], label = 'bvp_tol=2e-5')       # 
+    plt.plot(y_bvp_hc['z'], y_bvp_hc[variables[i]], label = 'N=100') # 
+    plt.plot(y_bvp_hc2['z'], y_bvp_hc2[variables[i]], label = 'R2分段 N=200', linestyle=':',linewidth=2.0) # 
+    plt.plot(y_bvp_hc3['z'], y_bvp_hc3[variables[i]], label = 'R2分段 N=500', linestyle=':',linewidth=2.0) # 
+    plt.plot(y_bvp_hc4['z'], y_bvp_hc4[variables[i]], label = 'R2分段 N=2000', linestyle=':',linewidth=2.0) # 
     # plt.plot(z_ref[i], df_ref[variables[i]], label = 'Muchi1970b_xO2=0')        # Muchi1970b_xO2=0.xlsx
     plt.ylabel(y_labels[i])
     plt.xlabel('z')
