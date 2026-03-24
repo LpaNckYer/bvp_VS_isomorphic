@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -20,159 +21,20 @@ class FurnaceModel:
 
     def run(self):
         """运行模型"""
-        print(f"计算中：{self.params.case_name}")
+        logging.info(f"计算中：{self.params.case_name}")
 
-        # simulation process
-        H0 = self.params.H0
-        H1 = self.params.H1
-        H2 = self.params.H2
-        H3 = self.params.H3
-        HH = self.params.HH
+        z_guess, state = self._build_initial_guess()
+        y_guess = np.array([state[k] for k in ['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']])
 
-        # 0 m
-        y0 = self.params.value0
-        # 4 m
-        y1 = self.params.value1
-        # 12 m
-        y2 = self.params.value2
-        # 16 m
-        y3 = self.params.value3
-        # 20 m
-        yH = self.params.valueH
-
-        # 问题设置
-        H_ctrl = [H0, H1, H2, H3, HH]
-        
-        # 初始猜测（可以比较粗糙）
-        T_ctrl = [y0[0], y1[0], y2[0], y3[0], yH[0]]
-        t_ctrl = [y0[1], y1[1], y2[1], y3[1], yH[1]]
-        fs_ctrl = [y0[2], y1[2], y2[2], y3[2], yH[2]]
-        fl_ctrl = [y0[3], y1[3], y2[3], y3[3], yH[3]]
-        x_ctrl = [y0[4], y1[4], y2[4], y3[4], yH[4]]
-        y_ctrl = [y0[5], y1[5], y2[5], y3[5], yH[5]]
-        w_ctrl = [y0[6], y1[6], y2[6], y3[6], yH[6]]
-        rho_b_ctrl = [y0[7], y1[7], y2[7], y3[7], yH[7]]
-        p_ctrl = [y0[8], y1[8], y2[8], y3[8], yH[8]]
-
-        T = self.multi_value_interpolation(H_ctrl, T_ctrl, self.params.initial_mesh)
-        t = self.multi_value_interpolation(H_ctrl, t_ctrl, self.params.initial_mesh)
-        fs = self.multi_value_interpolation(H_ctrl, fs_ctrl, self.params.initial_mesh)
-        fl = self.multi_value_interpolation(H_ctrl, fl_ctrl, self.params.initial_mesh)
-        x = self.multi_value_interpolation(H_ctrl, x_ctrl, self.params.initial_mesh)
-        y = self.multi_value_interpolation(H_ctrl, y_ctrl, self.params.initial_mesh)
-        w = self.multi_value_interpolation(H_ctrl, w_ctrl, self.params.initial_mesh)
-        rho_b = self.multi_value_interpolation(H_ctrl, rho_b_ctrl, self.params.initial_mesh)
-        p = self.multi_value_interpolation(H_ctrl, p_ctrl, self.params.initial_mesh)
-
-        y_guess = np.array([T, t, fs, fl, x, y, w, rho_b, p])
-        
-        # 求解
-        final_sol, history = self.solve_with_decreasing_tol(
-            self.blast_furnace_bvp, 
-            self.bc, 
-            H_ctrl, 
-            y_guess,
+        final_sol, history = self._solve_with_decreasing_tol(
+            self.blast_furnace_bvp, self.bc, [self.params.H0, self.params.HH], y_guess,
             tol_levels=[1e-1, 1e-2, 1e-3]
         )
-        
-        # 输出结果
-        print("\n=== 迭代历史 ===")
-        for i, record in enumerate(history):
-            print(f"轮次 {i+1}: 容差={record['tol']:.1e}, "
-                f"节点数={record['n_nodes']}, 成功={record['success']}")
-        
-        # 绘制结果
-        y_plot = final_sol.y
-        x_plot = final_sol.x
-        
-        y_plot = final_sol.sol(x_plot)
-        # plt.figure(figsize=(12, 8))
-        variables = ['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']
-        # for i in range(9):
-        #     plt.subplot(3, 3, i+1)
-        #     plt.plot(x_plot, y_plot[i])
-        #     plt.ylabel(variables[i])
-        #     plt.xlabel('z (m)')
-        # plt.tight_layout()
-        # plt.show()
 
-        # 保存结果
-        df = pd.DataFrame(np.vstack((x_plot, y_plot)).T, columns=['z'] + variables)
-        # df.to_csv(f'{self.params.case_name}_{H0:.1f}-{HH:.1f}m.csv', index=False)
+        self._log_history(history)
+        self._plot_and_save_results(final_sol, z_guess)
+        return self.results
 
-        self.results = {
-            "case_name": self.params.case_name,
-            "H0": x_plot[0],
-            "HH": x_plot[-1],
-            "T_out": y_plot[0,0],
-            "t_out": y_plot[1,-1],
-            "fs_out": y_plot[2,-1],
-            "fl_out": y_plot[3,-1],
-            "x_out": y_plot[4,0],
-            "y_out": y_plot[5,0],
-            "w_out": y_plot[6,0],    
-            "rhob_out": y_plot[7,-1],    
-            "p_bottom": y_plot[8,-1]
-        }
-
-        return df
-    
-    # solving
-    def solve_with_decreasing_tol(self, ode, bc, x_span, y_init, tol_levels=None):
-        """
-        使用逐步减小容差的方法求解BVP
-        
-        参数:
-        - ode: 微分方程函数
-        - bc: 边界条件函数  
-        - x_span: 求解区间
-        - y_init: 初始猜测
-        - tol_levels: 容差级别列表，默认[1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6]
-        
-        返回:
-        - solution: 最终解
-        - history: 各轮迭代结果历史
-        """
-        
-        if tol_levels is None:
-            tol_levels = [1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6]
-        
-        # 初始网格
-        # x = np.linspace(x_span[0], x_span[-1], self.params.initial_mesh)
-        x = np.linspace(x_span[0], x_span[-1], len(y_init[0]))    # 改为使用初始猜测的节点数
-        
-        history = []
-        
-        for i, tol in enumerate(tol_levels):
-            print(f"第 {i+1} 轮迭代，容差: {tol}")
-            
-            # 求解BVP
-            sol = solve_bvp(ode, bc, x, y_init, tol=tol, max_nodes=len(x)*20, verbose=2)
-            
-            if not sol.success:
-                print(f"警告: 第 {i+1} 轮迭代未收敛")
-                # 即使未完全收敛，仍使用当前解作为下一轮初始值
-                if i == 0:
-                    # 第一轮就失败，可能需要调整初始猜测
-                    raise RuntimeError("初始求解失败，请检查问题设置")
-            
-            # 记录结果
-            history.append({
-                'tol': tol,
-                'solution': sol,
-                'success': sol.success,
-                'n_nodes': len(sol.x)
-            })
-            
-            # 为下一轮准备：使用当前解作为初始猜测
-            # 可以增加网格点数以提高精度
-            # x = np.linspace(x_span[0], x_span[-1], min(self.params.initial_mesh, len(sol.x) * 2))
-            x = np.linspace(x_span[0], x_span[-1], len(sol.x))    # 改为使用初始猜测的节点数
-            y_init = sol.sol(x)
-        
-        return sol, history    
-
-    # 分段线性分布作为初值
     def multi_value_interpolation(self, x_control, y_control, num_output_points=2000):
         """
         使用numpy.interp处理多个控制点
@@ -184,6 +46,89 @@ class FurnaceModel:
         y_output = np.interp(x_output, x_control, y_control)
         
         return y_output
+
+    def _build_initial_guess(self):
+        """构建初始猜测"""
+        H_ctrl = [self.params.H0, self.params.H1, self.params.H2, self.params.H3, self.params.HH]
+        y0, y1, y2, y3, yH = self.params.value0, self.params.value1, self.params.value2, self.params.value3, self.params.valueH
+
+        state = {
+            'T': self.multi_value_interpolation(H_ctrl, [y0[0], y1[0], y2[0], y3[0], yH[0]], self.params.initial_mesh),
+            't': self.multi_value_interpolation(H_ctrl, [y0[1], y1[1], y2[1], y3[1], yH[1]], self.params.initial_mesh),
+            'fs': self.multi_value_interpolation(H_ctrl, [y0[2], y1[2], y2[2], y3[2], yH[2]], self.params.initial_mesh),
+            'fl': self.multi_value_interpolation(H_ctrl, [y0[3], y1[3], y2[3], y3[3], yH[3]], self.params.initial_mesh),
+            'x': self.multi_value_interpolation(H_ctrl, [y0[4], y1[4], y2[4], y3[4], yH[4]], self.params.initial_mesh),
+            'y': self.multi_value_interpolation(H_ctrl, [y0[5], y1[5], y2[5], y3[5], yH[5]], self.params.initial_mesh),
+            'w': self.multi_value_interpolation(H_ctrl, [y0[6], y1[6], y2[6], y3[6], yH[6]], self.params.initial_mesh),
+            'rhob': self.multi_value_interpolation(H_ctrl, [y0[7], y1[7], y2[7], y3[7], yH[7]], self.params.initial_mesh),
+            'p': self.multi_value_interpolation(H_ctrl, [y0[8], y1[8], y2[8], y3[8], yH[8]], self.params.initial_mesh),
+        }
+        z_guess = np.linspace(self.params.H0, self.params.HH, self.params.initial_mesh)
+        return z_guess, state
+
+    def _solve_with_decreasing_tol(self, ode, bc, x_span, y_init, tol_levels=None):
+        """逐步减小容差求解BVP"""
+        if tol_levels is None:
+            tol_levels = [1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6]
+
+        x = np.linspace(x_span[0], x_span[1], len(y_init[0]))
+        history = []
+
+        for i, tol in enumerate(tol_levels):
+            logging.info(f"第 {i+1} 轮迭代，容差: {tol}")
+            sol = solve_bvp(ode, bc, x, y_init, tol=tol, max_nodes=len(x)*20, verbose=2)
+
+            history.append({
+                'tol': tol,
+                'solution': sol,
+                'success': sol.success,
+                'n_nodes': len(sol.x)
+            })
+
+            if not sol.success:
+                logging.warning(f"第 {i+1} 轮未收敛，继续")
+            x = np.linspace(x_span[0], x_span[1], len(sol.x))
+            y_init = sol.sol(x)
+
+        return sol, history
+
+    def _log_history(self, history):
+        """记录迭代历史"""
+        logging.info("=== 迭代历史 ===")
+        for i, record in enumerate(history):
+            logging.info(f"轮次 {i+1}: 容差={record['tol']:.1e}, 节点数={record['n_nodes']}, 成功={record['success']}")
+
+    def _plot_and_save_results(self, sol, z_guess):
+        """绘制并保存结果"""
+        y_plot = sol.sol(z_guess)
+        variables = ['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']
+
+        plt.figure(figsize=(12, 8))
+        for i in range(9):
+            plt.subplot(3, 3, i+1)
+            plt.plot(z_guess, y_plot[i])
+            plt.ylabel(variables[i])
+            plt.xlabel('z (m)')
+        plt.tight_layout()
+        plt.close()  # 避免显示，节省内存
+
+        df = pd.DataFrame(np.vstack((z_guess, y_plot)).T, columns=['z'] + variables)
+        df.to_csv(f'{self.params.case_name}_{self.params.H0:.1f}-{self.params.HH:.1f}m.csv', index=False)
+
+        self.results = {
+            "case_name": self.params.case_name,
+            "H0": z_guess[0],
+            "HH": z_guess[-1],
+            "T_out": y_plot[0, 0],
+            "t_out": y_plot[1, -1],
+            "fs_out": y_plot[2, -1],
+            "fl_out": y_plot[3, -1],
+            "x_out": y_plot[4, 0],
+            "y_out": y_plot[5, 0],
+            "w_out": y_plot[6, 0],
+            "rhob_out": y_plot[7, -1],
+            "p_bottom": y_plot[8, -1]
+        }
     
     # bvp definition
     def blast_furnace_bvp(self,Z,Y):
@@ -199,15 +144,18 @@ class FurnaceModel:
         for i in range(n):
             z = Z[i]
             T,t,fs,fl,x,y,w,rho_b,p = Y[:,i]
-            res[:,i] = [self.dTdz(z,T,t,fs,fl,x,y,w,p),
-                        self.dtdz(z,T,t,fs,fl,x,y,w,p,rho_b),
-                        self.dfsdz(z,T,t,fs,x,y,w,p),
-                        self.dfldz(z,T,t,fl,x,y,w,p),
-                        self.dxdz(z,T,t,fs,fl,x,y,w,p),
-                        self.dydz(z,T,t,fs,fl,x,y,w,p),
-                        self.dwdz(z,T,t,fs,fl,x,y,w,p),
-                        self.drhobdz(z,T,t,fs,fl,x,y,w,p),
-                        self.dpdz(z,T,x,y,w,p)]
+            state = self._clamp_state(T=T, t=t, fs=fs, fl=fl, x=x, y=y, w=w, p=p, rho_b=rho_b)
+            res[:, i] = [
+                self.dTdz(z, state),
+                self.dtdz(z, state),
+                self.dfsdz(z, state),
+                self.dfldz(z, state),
+                self.dxdz(z, state),
+                self.dydz(z, state),
+                self.dwdz(z, state),
+                self.drhobdz(z, state),
+                self.dpdz(z, state)
+            ]
         return res
 
     def bc(self,ya,yb):
@@ -228,9 +176,34 @@ class FurnaceModel:
                         ya[7]-self.params.rhob_in,
                         ya[8]-self.params.p_in])
 
+    def _clamp_state(self, **state):
+        """统一 clamp 逻辑"""
+        # 定义边界字典以提高可维护性
+        bounds = {
+            'T': (500, 2500),
+            't': (400, 2500),
+            'fs': (0, 1),
+            'fl': (0, 1),
+            'x': (1e-10, 0.47),
+            'p': (1e4, 3e4),
+            'rho_b': (800, 1200),
+        }
+        
+        # 对独立变量进行裁剪
+        for key, (min_val, max_val) in bounds.items():
+            if key in state:
+                state[key] = np.clip(state[key], min_val, max_val)
+        
+        # 对依赖变量进行裁剪（x, y, w 相互依赖）
+        if 'y' in state:
+            state['y'] = np.clip(state['y'], 0, 0.47 - state.get('x', 0))
+        if 'w' in state:
+            state['w'] = np.clip(state['w'], 0, 0.47 - state.get('x', 0) - state.get('y', 0))
+        
+        return state
 
     # odes
-    def dTdz(self,z,T,t,fs,fl,x,y,w,p):
+    def dTdz(self, z, state):
         """differential equation of T
         temperature of gas
 
@@ -253,14 +226,8 @@ class FurnaceModel:
             dd (float): [K / m]
 
         """
-        T = np.clip(T, 500, 2500)
-        t = np.clip(t, 400, 2500)
-        fs = np.clip(fs, 0, 1)
-        fl = np.clip(fl, 0, 1)
-        x = np.clip(x, 0, 0.47)
-        y = np.clip(y, 0, 0.47-x)
-        w = np.clip(w, 0, 0.47-x-y)        
-        p = np.clip(p, 1e4, 3e4)
+        
+        T, t, fs, fl, x, y, w, p = state['T'], state['t'], state['fs'], state['fl'], state['x'], state['y'], state['w'],  state['p']
 
         Dz = self.params.Diameter_BF(z) # Dz (float): diameter of coke-bed. [m]
         Az = pai * (Dz/2)**2 # Az (float): cross-sectional area of coke-bed. [m2]
@@ -277,7 +244,7 @@ class FurnaceModel:
 
         return dd
     
-    def dtdz(self,z,T,t,fs,fl,x,y,w,p,rho_b):
+    def dtdz(self,z,state):
         """differential equation of t
         temperature of solid particle
 
@@ -298,15 +265,8 @@ class FurnaceModel:
         Returns:
             dd (float): [K / m]
         """
-        T = np.clip(T, 500, 2500)
-        t = np.clip(t, 400, 2500)
-        fs = np.clip(fs, 0, 1)
-        fl = np.clip(fl, 0, 1)
-        x = np.clip(x, 1e-10, 0.47)
-        y = np.clip(y, 0, 0.47-x)
-        w = np.clip(w, 0, 0.47-x-y)        
-        p = np.clip(p, 1e4, 3e4)
-        rho_b = np.clip(rho_b, 800, 1200)
+        
+        T, t, fs, fl, x, y, w, rho_b, p = state['T'], state['t'], state['fs'], state['fl'], state['x'], state['y'], state['w'], state['rho_b'], state['p']
 
         Dz = self.params.Diameter_BF(z) # Dz (float): diameter of coke-bed. [m]
         Az = pai * (Dz/2)**2 # Az (float): cross-sectional area of coke-bed. [m2]
@@ -321,7 +281,7 @@ class FurnaceModel:
         # return np.asarray(dd).item()   
         return dd
 
-    def dfsdz(self,z,T,t,fs,x,y,w,p):
+    def dfsdz(self, z, state):
         """differential equation of fs
         fractional reduction of iron ore
 
@@ -341,13 +301,8 @@ class FurnaceModel:
         Returns:
             dd (float): [1 / m]
         """
-        T = np.clip(T, 500, 2500)
-        t = np.clip(t, 400, 2500)
-        fs = np.clip(fs, 0, 1)
-        x = np.clip(x, 1e-10, 0.47)
-        y = np.clip(y, 0, 0.47-x)
-        w = np.clip(w, 0, 0.47-x-y)        
-        p = np.clip(p, 1e4, 3e4)
+        
+        T, t, fs, x, y, w, p = state['T'], state['t'], state['fs'], state['x'], state['y'], state['w'], state['p']
 
         Dz = self.params.Diameter_BF(z) # Dz (float): diameter of coke-bed. [m]
         Az = pai * (Dz/2)**2 # Az (float): cross-sectional area of coke-bed. [m2]    
@@ -362,7 +317,7 @@ class FurnaceModel:
         dd = (1-weight)*dd1 + weight*dd2
         return dd
 
-    def dfldz(self,z,T,t,fl,x,y,w,p):
+    def dfldz(self,z,state):
         """differential equation of fl
         fractional decomposition of limestone
 
@@ -382,13 +337,8 @@ class FurnaceModel:
         Returns:
             dd (float): [1 / m]
         """
-        T = np.clip(T, 500, 2500)
-        t = np.clip(t, 400, 2500)
-        fl = np.clip(fl, 0, 1)
-        x = np.clip(x, 1e-10, 0.47)
-        y = np.clip(y, 0, 0.47-x)
-        w = np.clip(w, 0, 0.47-x-y)        
-        p = np.clip(p, 1e4, 3e4) 
+        
+        T, t, fl, x, y, w, p = state['T'], state['t'], state['fl'], state['x'], state['y'], state['w'], state['p']
 
         Dz = self.params.Diameter_BF(z) # Dz (float): diameter of coke-bed. [m]
         Az = pai * (Dz/2)**2 # Az (float): cross-sectional area of coke-bed. [m2]   
@@ -398,7 +348,7 @@ class FurnaceModel:
         dd = Az * R4 / self.params.Fs / self.params.c_L0
         return dd
 
-    def dxdz(self,z,T,t,fs,fl,x,y,w,p):
+    def dxdz(self,z,state):
         """differential equation of x
         molar fraction of CO in bulk of gas
 
@@ -418,14 +368,8 @@ class FurnaceModel:
         Returns:
             dd (float): [1 / m]
         """
-        T = np.clip(T, 500, 2500)
-        t = np.clip(t, 400, 2500)
-        fs = np.clip(fs, 0, 1)
-        fl = np.clip(fl, 0, 1)
-        x = np.clip(x, 1e-10, 0.47)
-        y = np.clip(y, 0, 0.47-x)
-        w = np.clip(w, 0, 0.47-x-y)
-        p = np.clip(p, 1e4, 3e4)
+        
+        T, t, fs, fl, x, y, w, p = state['T'], state['t'], state['fs'], state['fl'], state['x'], state['y'], state['w'], state['p']
 
         Dz = self.params.Diameter_BF(z) # Dz (float): diameter of coke-bed. [m]
         Az = pai * (Dz/2)**2 # Az (float): cross-sectional area of coke-bed. [m2] 
@@ -449,7 +393,7 @@ class FurnaceModel:
         dd = (1-weight)*dd1 + weight*dd2
         return dd
 
-    def dydz(self,z,T,t,fs,fl,x,y,w,p):
+    def dydz(self,z,state):
         """differential equation of y
         molar fraction of CO2 in bulk of gas
 
@@ -469,14 +413,8 @@ class FurnaceModel:
         Returns:
             dd (float): [1 / m]
         """
-        T = np.clip(T, 500, 2500)
-        t = np.clip(t, 400, 2500)
-        fs = np.clip(fs, 0, 1)
-        fl = np.clip(fl, 0, 1)
-        x = np.clip(x, 1e-10, 0.47)
-        y = np.clip(y, 0, 0.47-x)
-        w = np.clip(w, 0, 0.47-x-y)
-        p = np.clip(p, 1e4, 3e4)
+        
+        T, t, fs, fl, x, y, w, p = state['T'], state['t'], state['fs'], state['fl'], state['x'], state['y'], state['w'], state['p']
 
         Dz = self.params.Diameter_BF(z) # Dz (float): diameter of coke-bed. [m]
         Az = pai * (Dz/2)**2 # Az (float): cross-sectional area of coke-bed. [m2] 
@@ -501,7 +439,7 @@ class FurnaceModel:
         dd = (1-weight)*dd1 + weight*dd2
         return dd
 
-    def dwdz(self,z,T,t,fs,fl,x,y,w,p):
+    def dwdz(self,z,state):
         """differential equation of w
         molar fraction of H2 in bulk of gas
 
@@ -521,14 +459,8 @@ class FurnaceModel:
         Returns:
             dd (float): [1 / m]
         """
-        T = np.clip(T, 500, 2500)
-        t = np.clip(t, 400, 2500)
-        fs = np.clip(fs, 0, 1)
-        fl = np.clip(fl, 0, 1)
-        x = np.clip(x, 1e-10, 0.47)
-        y = np.clip(y, 0, 0.47-x)
-        w = np.clip(w, 0, 0.47-x-y)
-        p = np.clip(p, 1e4, 3e4)
+        
+        T, t, fs, fl, x, y, w, p = state['T'], state['t'], state['fs'], state['fl'], state['x'], state['y'], state['w'], state['p']
 
         Dz = self.params.Diameter_BF(z) # Dz (float): diameter of coke-bed. [m]
         Az = pai * (Dz/2)**2 # Az (float): cross-sectional area of coke-bed. [m2] 
@@ -554,7 +486,7 @@ class FurnaceModel:
         dd = (1-weight)*dd1 + weight*dd2
         return dd
 
-    def drhobdz(self,z,T,t,fs,fl,x,y,w,p):
+    def drhobdz(self,z,state):
         """differential equation of rho_b
         bulk density of solid particles
 
@@ -574,14 +506,8 @@ class FurnaceModel:
         Returns:
             dd (float): [kg / m3 bed * m]
         """
-        T = np.clip(T, 500, 2500)
-        t = np.clip(t, 400, 2500)
-        fs = np.clip(fs, 0, 1)
-        fl = np.clip(fl, 0, 1)
-        x = np.clip(x, 1e-10, 0.47)
-        y = np.clip(y, 0, 0.47-x)
-        w = np.clip(w, 0, 0.47-x-y)
-        p = np.clip(p, 1e4, 3e4)
+         
+        T, t, fs, fl, x, y, w, p = state['T'], state['t'], state['fs'], state['fl'], state['x'], state['y'], state['w'], state['p']
 
         Dz = self.params.Diameter_BF(z) # Dz (float): diameter of coke-bed. [m]
         Az = pai * (Dz/2)**2 # Az (float): cross-sectional area of coke-bed. [m2]
@@ -605,7 +531,7 @@ class FurnaceModel:
         dd = (1-weight)*dd1 + weight*dd2
         return dd
 
-    def dpdz(self,z,T,x,y,w,p):
+    def dpdz(self,z,state):
         """differential equation of p
         pressure of gas
 
@@ -623,11 +549,8 @@ class FurnaceModel:
         Returns:
             dd (float): [Kg / m2 * m]
         """
-        T = np.clip(T, 500, 2500)
-        x = np.clip(x, 1e-10, 0.47)
-        y = np.clip(y, 0, 0.47-x)
-        w = np.clip(w, 0, 0.47-x-y)
-        p = np.clip(p, 1e4, 3e4)
+        
+        T, x, y, w, p = state['T'], state['x'], state['y'], state['w'], state['p']
 
         Dz = self.params.Diameter_BF(z) # Dz (float): diameter of coke-bed. [m]
         Az = pai * (Dz/2)**2 # Az (float): cross-sectional area of coke-bed. [m2]
@@ -957,7 +880,6 @@ class FurnaceModel:
 
         Raises:
         """
-        fs = np.clip(fs, 0, 1)
         k = 4.66e4 * np.exp(-53300/R/t) # k (float): rate constant of reaction. [m4 / kmol CO * hr]
 
         rho_P = 8540 - 0.750*t  # rho_P (float): density of pig iron. [kg / m3]
@@ -995,7 +917,6 @@ class FurnaceModel:
 
         Raises:
         """
-        fl = np.clip(fl, 0, 1)
 
         D_CO2 = self.DiffusionCoefficient_CO2(t,p)    # D_CO2 (float): diffusion coefficient of CO2 in blast furnace gas. [m2 / hr]
         epsilon_pL = 0.20
@@ -1060,7 +981,6 @@ class FurnaceModel:
 
         Raises:
         """
-        fs = np.clip(fs, 0, 1)
 
         D_H2 = 3.960E-6*t**1.78 / (p/P_std)    # D_H2 (float): diffusion coefficient of H2 in blast furnace gas. [m2 / hr]
         epsilon_v = 0.53 + 0.47 * self.params.epsilon_o
@@ -1381,30 +1301,16 @@ class NormalizedFurnaceModel(FurnaceModel):
         """物理量 → 归一化量"""
         norms = self.norms
         Y_norm = Y_physical.copy()
-        Y_norm[0] /= norms['T']      # T
-        Y_norm[1] /= norms['t']      # t
-        Y_norm[2] /= norms['fs']     # fs
-        Y_norm[3] /= norms['fl']     # fl
-        Y_norm[4] /= norms['x']      # x
-        Y_norm[5] /= norms['y']      # y
-        Y_norm[6] /= norms['w']      # w
-        Y_norm[7] /= norms['rhob']    # rho_b
-        Y_norm[8] /= norms['p']      # p
+        for i, key in enumerate(['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']):
+            Y_norm[i] /= norms[key]
         return Y_norm
     
     def denormalize_y(self, Y_norm):
         """归一化量 → 物理量"""
         norms = self.norms
         Y_physical = Y_norm.copy()
-        Y_physical[0] *= norms['T']      # T
-        Y_physical[1] *= norms['t']      # t
-        Y_physical[2] *= norms['fs']     # fs
-        Y_physical[3] *= norms['fl']     # fl
-        Y_physical[4] *= norms['x']      # x
-        Y_physical[5] *= norms['y']      # y
-        Y_physical[6] *= norms['w']      # w
-        Y_physical[7] *= norms['rhob']    # rho_b
-        Y_physical[8] *= norms['p']      # p
+        for i, key in enumerate(['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']):
+            Y_physical[i] *= norms[key]
         return Y_physical
     
     def normalized_bvp(self, z, Y_norm):
@@ -1418,15 +1324,8 @@ class NormalizedFurnaceModel(FurnaceModel):
         # 转换为归一化导数
         norms = self.norms
         dY_norm = dY_physical.copy()
-        dY_norm[0] *= norms['z'] / norms['T']    # dT/dz
-        dY_norm[1] *= norms['z'] / norms['t']    # dt/dz
-        dY_norm[2] *= norms['z'] / norms['fs']   # dfs/dz
-        dY_norm[3] *= norms['z'] / norms['fl']   # dfl/dz
-        dY_norm[4] *= norms['z'] / norms['x']    # dx/dz
-        dY_norm[5] *= norms['z'] / norms['y']    # dy/dz
-        dY_norm[6] *= norms['z'] / norms['w']    # dw/dz
-        dY_norm[7] *= norms['z'] / norms['rhob']  # drhob/dz
-        dY_norm[8] *= norms['z'] / norms['p']    # dp/dz
+        for i, key in enumerate(['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']):
+            dY_norm[i] *= norms['z'] / norms[key]
         
         return dY_norm
     
@@ -1442,107 +1341,40 @@ class NormalizedFurnaceModel(FurnaceModel):
         # 归一化边界条件残差
         norms = self.norms
         bc_norm = bc_physical.copy()
-        bc_norm[0] /= norms['T']      # T边界
-        bc_norm[1] /= norms['t']      # t边界
-        bc_norm[2] /= norms['fs']     # fs边界
-        bc_norm[3] /= norms['fl']     # fl边界
-        bc_norm[4] /= norms['x']      # x边界
-        bc_norm[5] /= norms['y']      # y边界
-        bc_norm[6] /= norms['w']      # w边界
-        bc_norm[7] /= norms['rhob']    # rho_b边界
-        bc_norm[8] /= norms['p']      # p边界
+        for i, key in enumerate(['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']):
+            bc_norm[i] /= norms[key]
         
         return bc_norm
     
     def solve_normalized(self):
         """使用归一化变量求解"""
-
-        ## 分段线性初值
-        H0 = self.params.H0
-        H1 = self.params.H1
-        H2 = self.params.H2
-        H3 = self.params.H3
-        HH = self.params.HH
-
-        # 0 m
-        y0 = self.params.value0
-        # 4 m
-        y1 = self.params.value1
-        # 12 m
-        y2 = self.params.value2
-        # 16 m
-        y3 = self.params.value3
-        # 20 m
-        yH = self.params.valueH
-
-        # 问题设置
-        H_ctrl = [H0, H1, H2, H3, HH]
-        
-        # 初始猜测（可以比较粗糙）
-        T_ctrl = [y0[0], y1[0], y2[0], y3[0], yH[0]]
-        t_ctrl = [y0[1], y1[1], y2[1], y3[1], yH[1]]
-        fs_ctrl = [y0[2], y1[2], y2[2], y3[2], yH[2]]
-        fl_ctrl = [y0[3], y1[3], y2[3], y3[3], yH[3]]
-        x_ctrl = [y0[4], y1[4], y2[4], y3[4], yH[4]]
-        y_ctrl = [y0[5], y1[5], y2[5], y3[5], yH[5]]
-        w_ctrl = [y0[6], y1[6], y2[6], y3[6], yH[6]]
-        rho_b_ctrl = [y0[7], y1[7], y2[7], y3[7], yH[7]]
-        p_ctrl = [y0[8], y1[8], y2[8], y3[8], yH[8]]
-
-        T = self.multi_value_interpolation(H_ctrl, T_ctrl, self.params.initial_mesh)
-        t = self.multi_value_interpolation(H_ctrl, t_ctrl, self.params.initial_mesh)
-        fs = self.multi_value_interpolation(H_ctrl, fs_ctrl, self.params.initial_mesh)
-        fl = self.multi_value_interpolation(H_ctrl, fl_ctrl, self.params.initial_mesh)
-        x = self.multi_value_interpolation(H_ctrl, x_ctrl, self.params.initial_mesh)
-        y = self.multi_value_interpolation(H_ctrl, y_ctrl, self.params.initial_mesh)
-        w = self.multi_value_interpolation(H_ctrl, w_ctrl, self.params.initial_mesh)
-        rho_b = self.multi_value_interpolation(H_ctrl, rho_b_ctrl, self.params.initial_mesh)
-        p = self.multi_value_interpolation(H_ctrl, p_ctrl, self.params.initial_mesh)
-
-        # 归一化初始猜测
-        y_guess_physical = np.array([T, t, fs, fl, x, y, w, rho_b, p])  # 原有的初始猜测
+        z_guess, state = self._build_initial_guess()
+        y_guess_physical = np.array([state[k] for k in ['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']])
         y_guess_norm = self.normalize_y(y_guess_physical)
-        
-        # 归一化边界条件（在run()方法中）
-        H0 = self.params.H0 / self.norms['z']
-        HH = self.params.HH / self.norms['z']
-        
-        # 使用归一化的BVP求解
-        sol_norm, history = self.solve_with_decreasing_tol(
-            self.normalized_bvp, 
-            self.normalized_bc, 
-            [H0, HH], 
-            y_guess_norm,
+
+        H0_norm = self.params.H0 / self.norms['z']
+        HH_norm = self.params.HH / self.norms['z']
+
+        sol_norm, history = self._solve_with_decreasing_tol(
+            self.normalized_bvp, self.normalized_bc, [H0_norm, HH_norm], y_guess_norm,
             tol_levels=[1e-1, 1e-2, 1e-3]
         )
-        
-        # 输出结果
-        print("\n=== 迭代历史 ===")
-        for i, record in enumerate(history):
-            print(f"轮次 {i+1}: 容差={record['tol']:.1e}, "
-                f"节点数={record['n_nodes']}, 成功={record['success']}")
 
-        # 反归一化结果
+        self._log_history(history)
+
         if sol_norm.success:
             z_physical = sol_norm.x * self.norms['z']
             y_physical = self.denormalize_y(sol_norm.y)
-            yp = self.denormalize_y(sol_norm.yp) / self.norms['z']
-            # 绘制结果
+
             plt.figure(figsize=(12, 8))
             variables = ['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']
             for i in range(9):
                 plt.subplot(3, 3, i+1)
-                plt.plot(z_physical, y_physical[i], label='solution')
+                plt.plot(z_physical, y_physical[i])
                 plt.ylabel(variables[i])
                 plt.xlabel('z (m)')
             plt.tight_layout()
-            # plt.show()
- 
-            # plt.plot(z_physical, yp_physical[0], label='dT/dz')
-            # plt.plot(z_physical, yp_physical[1], label='dt/dz')
-            # plt.xlabel('z (m)')
-            # plt.legend()
-            # plt.show()
+            plt.close()
 
             # 保存结果
             df = pd.DataFrame(np.vstack((z_physical, y_physical)).T, columns=['z'] + variables)
@@ -1745,8 +1577,19 @@ class HCFurnaceModel(FurnaceModel):
     def __init__(self, parameters):
         super().__init__(parameters)
 
+    def _relax_solver(self, z, state, update_fn, fields, tol=1e-3, max_iter=100, omega=0.5):
+        """通用收敛求解器"""
+        for _ in range(max_iter):
+            new_state = update_fn(z, state)
+            error = sum(norm(new_state[k] - state[k]) / norm(state[k]) for k in fields) / len(fields)
+            if error < tol:
+                return new_state
+            for k in fields:
+                state[k] = omega * new_state[k] + (1 - omega) * state[k]
+        return state
+
     # Heat Current Method
-    def Tt_hc(self,z,T,t,fs,fl,x,y,w,p,rhob):
+    def Tt_hc(self,z,state):
         """[T,t,fs,fl,x,y,w,p,rhob]->[T_new,t_new]
 
         Args:
@@ -1757,153 +1600,17 @@ class HCFurnaceModel(FurnaceModel):
             T_new (numpy.ndarray): temperature profile of gas. [K]
             t_new (numpy.ndarray): temperature profile of coke-bed. [K]
         """
-        T1in = self.params.t_in
-        T2in = self.params.T_in
-
         Dz = self.params.Diameter_BF(z)
         Az = pai * (Dz/2)**2 # Az (float): cross-sectional area of coke-bed. [m2]
 
-        miu = self.Viscosity_Gas(T) # miu (float): viscosity of blast furnace gas. [kg / m * hr]
-        F = self.VolumeRate_Gas(x,y)   # F (float): volume rate of flow of gas. [Nm3 / hr]
 
-        rho = self.Density_Gas(x,y,w) # rho (float): density of blast furnace gas. [kg / Nm3]
-        C,dCdT = self.HeatCapacity_Gas(T,x,y,w) # C (float): heat capacity of gas. [kcal / kg * K] ; dCdT (float): differential of C with T. [kcal / kg * K**2]
-        Cs,dCsdt = self.HeatCapacity_Solid(t) # Cs (float): specific heat of solid particles. [kcal / kg * K] ; dCsdt (float): specific heat of solid particles differential T. [kcal / kg * K**2]
-
-        G = rho * F / Az # G (float): mass velocity of gas. [kg / m2 * hr]
-        Re = self.params.d_p * G / miu
-        k = 0.06 # k (float): thermal conductivity of gas. [kcal / m * hr * K]
-        Pr = C * miu / k
-        Nu = 2.0 + 0.60*Re**(1/2)*Pr**(1/3)
-        h_p = Nu * k / self.params.d_p # h_p (float): particle-to-fluid heat transfer coefficient. [kcal / m2 * hr * K]
-
-        KA = 6 * (1-self.params.epsilon) * h_p * Az  / self.params.phi_o / self.params.d_p  # KA (float): Heat transfer coefficient. [kcal / m * hr * K]
-
-        R1 = self.ReactionRate_1(z,T,t,fs,x,y,w,p) # R1 (float): 1/3 Fe2O3 + CO = 2/3 Fe + CO2 reaction rate per unit volume of bed. [kmol CO / m3 bed * hr]
-        R2 = self.ReactionRate_2(z,T,t,fs,x,y,w,p) # R2 (float): C + CO2 = 2CO reaction rate per unit volume of bed. [kmol CO2 / m3 bed * hr]
-        R3 = self.ReactionRate_3(t,fs) # R3 (float): FeO(l) + C(s) = Fe(l) + CO(g) reaction rate per unit volume of bed. [kmol CO / m3 bed * hr]
-        R4 = self.ReactionRate_4(z,T,t,fl,x,y,w,p) # R4 (float): CaCO3 = CaO + CO2 reaction rate per unit volume of bed. [kmol CO2 / m3 bed * hr]
-        R5 = self.ReactionRate_5(z,T,t,fs,x,y,w,p) # R5 (float): 1/3 Fe2O3 + H2 = 2/3 Fe + H2O reaction rate per unit volume of bed. [kmol H2 / m3 bed * hr]
-        R6 = self.ReactionRate_6(z,T,t,x,y,w,p) # R6 (float): C + H2O = CO + H2 reaction rate per unit volume of bed. [kmol H2O / m3 bed * hr]
-        R7 = self.ReactionRate_7(T,x,y,w,p) # R7 (float): CO + H2O = CO2 + H2 reaction rate per unit volume of bed. [kmol H2 / m3 bed * hr]        
-
-        weight1 = smooth_heaviside(fs-0.111,k=200)
-        weight2 = smooth_heaviside(fs-0.333,k=200)
-
-        H1 = np.zeros_like(z)
-        H5 = np.zeros_like(z)
-        mask = (fs < 0.222)
-        H1[mask] = (1-weight1[mask])*-7.88e3 * 1/9 + weight1[mask]*7.12e3 * 2/9
-        H5[mask] = (1-weight1[mask])*-2.8e3 * 1/9 + weight1[mask]*16.1e3 * 2/9
-        H1[~mask] = (1-weight2[~mask])*7.12e3 * 2/9 + weight2[~mask]*-5.45e3 * 2/3
-        H5[~mask] = (1-weight2[~mask])*16.1e3 * 2/9 + weight2[~mask]*6.5e3 * 2/3
-        
-        H2 = 40.8e3 # [kcal / kmol CO2]
-        H3 = 31.13e3 # [kcal / kmol CO]
-        H4 = 42.5e3 # [kcal / kmol CO2]
-        H6 = 31.5e3 # [kcal / kmol CO]
-        H7 = -9.84e3 # [kcal / kmol CO2]
-
-        # t<1673K
-        q2 = np.where(t<1200, (1.2507*0 + 0.7261*1)*R1 + 0.5246*R2 + 1.9768*R4 + 0.7143*R5 + 0.5364*R6,
-                      (1.2507*0 + 0.7261*1)*R1 + 0.5246*(R2+R1+R4+R7) + 1.9768*R4 + 0.7143*R5 + 0.5364*R6)
-        q4 = np.where(t<1200, -H1*R1 -H2*R2 -H4*R4 -H5*R5 -H6*R6 -H7*R7,
-                      -H1*R1 -H2*(R2+R1+R4+R7) -H4*R4 -H5*R5 -H6*R6 -H7*R7)
-        q5 = np.where(t<1200, 16*R1 + 12*R2 + 44*R4 + 16*R5 + 12*R6,
-                      16*R1 + 12*(R2+R1+R4+R7) + 44*R4 + 16*R5 + 12*R6)
-
-        G1 = rhob * self.params.Fs * (Cs + t*dCsdt) # solid   [kcal / hr * K]
-        G2 = rho * F * (C + T*dCdT)    # gas     [kcal / hr * K]
-        Q1 = Az*q4 + Az*Cs*t*q5                 # solid
-        Q2 = 22.4*Az*C*q2*T + pai*Dz*self.params.U*(T-self.params.T_we) # gas       [kcal / m * hr]
-
-        # df = pd.DataFrame(np.vstack((z, [KA, G1, G2, Q1, Q2])).T, columns=['z', 'KA', 'G1', 'G2', 'Q1', 'Q2'])
-        # df.to_csv('Tt_para_1.csv', index=False)
-
-        z_low, z_high = z[t<1200], z[t>=1200]
-        G1_low, G1_high = G1[t<1200], G1[t>=1200]
-        G2_low, G2_high = G2[t<1200], G2[t>=1200]
-        KA_low, KA_high = KA[t<1200], KA[t>=1200]
-        Q1_low, Q1_high = Q1[t<1200], Q1[t>=1200]
-        Q2_low, Q2_high = Q2[t<1200], Q2[t>=1200]
-        G1_low = (G1_low[1:] + G1_low[:-1]) / 2 
-        G2_low = (G2_low[1:] + G2_low[:-1]) / 2
-        KA_low = (KA_low[1:] + KA_low[:-1]) / 2
-        Q1_low = (Q1_low[1:] + Q1_low[:-1]) / 2
-        Q2_low = (Q2_low[1:] + Q2_low[:-1]) / 2
-        G1_high = (G1_high[1:] + G1_high[:-1]) / 2 
-        G2_high = (G2_high[1:] + G2_high[:-1]) / 2
-        KA_high = (KA_high[1:] + KA_high[:-1]) / 2
-        Q1_high = (Q1_high[1:] + Q1_high[:-1]) / 2
-        Q2_high = (Q2_high[1:] + Q2_high[:-1]) / 2
-
-        z_diff_low = np.diff(z_low)
-        N_low = len(z_diff_low)
-        T1in_low = self.params.t_in
-        T2in_low = T[N_low]
-        t_low, T_low = t[t<1200], T[t<1200]
-        A_low,a_low = setAa_n(N_low, z_diff_low, KA_low, G1_low, G2_low, T1in_low, T2in_low, Q1_low, Q2_low)
-        X_low = solve(A_low, a_low)
-        t_low_new = np.asarray(X_low[0:N_low+1]).reshape(-1)
-        T_low_new = np.asarray(X_low[(N_low+1):(2*N_low+2)]).reshape(-1)
-        count = 0
-        limit = 100
-        while(norm(T_low_new-T_low)/norm(T_low) >= 1e-3 or norm(t_low_new-t_low)/norm(t_low) >= 1e-3) and (count < limit):
-            count += 1
-            t_low, T_low = t_low_new, T_low_new
-            A_low,a_low = setAa_n(N_low, z_diff_low, KA_low, G1_low, G2_low, T1in_low, T2in_low, Q1_low, Q2_low)
-            X_low = solve(A_low, a_low)
-            t_low_new = np.asarray(X_low[0:N_low+1]).reshape(-1)
-            T_low_new = np.asarray(X_low[(N_low+1):(2*N_low+2)]).reshape(-1)
-
-        z_diff_high = np.diff(z_high)
-        N_high = len(z_diff_high)
-        T1in_high = t[N_low+1]
-        T2in_high = self.params.T_in
-        t_high, T_high = t[t>=1200], T[t>=1200]
-        A_high,a_high = setAa_n(N_high, z_diff_high, KA_high, G1_high, G2_high, T1in_high, T2in_high, Q1_high, Q2_high)
-        X_high = solve(A_high, a_high)
-        t_high_new = np.asarray(X_high[0:N_high+1]).reshape(-1)
-        T_high_new = np.asarray(X_high[(N_high+1):(2*N_high+2)]).reshape(-1)
-        count = 0
-        limit = 100
-        while(norm(T_high_new-T_high)/norm(T_high) >= 1e-3 or norm(t_high_new-t_high)/norm(t_high) >= 1e-3) and (count < limit):
-            count += 1
-            t_high, T_high = t_high_new, T_high_new
-            A_high,a_high = setAa_n(N_high, z_diff_high, KA_high, G1_high, G2_high, T1in_high, T2in_high, Q1_high, Q2_high)
-            X_high = solve(A_high, a_high)
-            t_high_new = np.asarray(X_high[0:N_high+1]).reshape(-1)
-            T_high_new = np.asarray(X_high[(N_high+1):(2*N_high+2)]).reshape(-1)
-
-        T_new = np.concatenate((T_low_new, T_high_new))
-        t_new = np.concatenate((t_low_new, t_high_new))
-
-        # plt.plot(z, T_new, label='Tnew')
-        # plt.plot(z, t_new, label='tnew')
-        # plt.legend()
-        # plt.show()
-
-        # plt.plot(z, T_new-T, label='Tnew-T')
-        # plt.plot(z, t_new-t, label='tnew-t')
-        # plt.legend()
-        # plt.show()
-
-        count_out = 0
-        limit = 1000
-        s = 0.5
-        while(norm(T_new-T)/norm(T) >= 1e-3 or norm(t_new-t)/norm(t) >= 1e-3) and (count_out < limit):
-            count_out += 1
-            # print("Tt_hc, count_out = ", count_out)
-            T = s*T_new + (1-s)*T
-            t = s*t_new + (1-s)*t
-
-            T = np.clip(T, 500, 2500)
-            t = np.clip(t, 400, 2500)
-
-            miu = self.Viscosity_Gas(T) # miu (float): viscosity of blast furnace gas. [kg / m * hr]
-            F = self.VolumeRate_Gas(x,y)   # F (float): volume rate of flow of gas. [Nm3 / hr]
+        def update_fn(z, current_state):
+            current_state = self._clamp_state(**current_state)
+            T, t, fs, fl, x, y, w, p, rhob = current_state['T'], current_state['t'], current_state['fs'], current_state['fl'], current_state['x'], current_state['y'], current_state['w'], current_state['p'], current_state['rhob']
             
+            F = self.VolumeRate_Gas(x,y)   # F (float): volume rate of flow of gas. [Nm3 / hr]
             rho = self.Density_Gas(x,y,w) # rho (float): density of blast furnace gas. [kg / Nm3]
+            miu = self.Viscosity_Gas(T) # miu (float): viscosity of blast furnace gas. [kg / m * hr]
             C,dCdT = self.HeatCapacity_Gas(T,x,y,w) # C (float): heat capacity of gas. [kcal / kg * K] ; dCdT (float): differential of C with T. [kcal / kg * K**2]
             Cs,dCsdt = self.HeatCapacity_Solid(t) # Cs (float): specific heat of solid particles. [kcal / kg * K] ; dCsdt (float): specific heat of solid particles differential T. [kcal / kg * K**2]
 
@@ -1924,6 +1631,23 @@ class HCFurnaceModel(FurnaceModel):
             R6 = self.ReactionRate_6(z,T,t,x,y,w,p) # R6 (float): C + H2O = CO + H2 reaction rate per unit volume of bed. [kmol H2O / m3 bed * hr]
             R7 = self.ReactionRate_7(T,x,y,w,p) # R7 (float): CO + H2O = CO2 + H2 reaction rate per unit volume of bed. [kmol H2 / m3 bed * hr]        
 
+            weight1 = smooth_heaviside(fs-0.111,k=200)
+            weight2 = smooth_heaviside(fs-0.333,k=200)
+
+            H1 = np.zeros_like(z)
+            H5 = np.zeros_like(z)
+            mask = (fs < 0.222)
+            H1[mask] = (1-weight1[mask])*-7.88e3 * 1/9 + weight1[mask]*7.12e3 * 2/9
+            H5[mask] = (1-weight1[mask])*-2.8e3 * 1/9 + weight1[mask]*16.1e3 * 2/9
+            H1[~mask] = (1-weight2[~mask])*7.12e3 * 2/9 + weight2[~mask]*-5.45e3 * 2/3
+            H5[~mask] = (1-weight2[~mask])*16.1e3 * 2/9 + weight2[~mask]*6.5e3 * 2/3
+            
+            H2 = 40.8e3 # [kcal / kmol CO2]
+            H3 = 31.13e3 # [kcal / kmol CO]
+            H4 = 42.5e3 # [kcal / kmol CO2]
+            H6 = 31.5e3 # [kcal / kmol CO]
+            H7 = -9.84e3 # [kcal / kmol CO2]
+
             # t<1673K
             q2 = np.where(t<1200, (1.2507*0 + 0.7261*1)*R1 + 0.5246*R2 + 1.9768*R4 + 0.7143*R5 + 0.5364*R6,
                         (1.2507*0 + 0.7261*1)*R1 + 0.5246*(R2+R1+R4+R7) + 1.9768*R4 + 0.7143*R5 + 0.5364*R6)
@@ -1936,6 +1660,9 @@ class HCFurnaceModel(FurnaceModel):
             G2 = rho * F * (C + T*dCdT)    # gas     [kcal / hr * K]
             Q1 = Az*q4 + Az*Cs*t*q5                 # solid
             Q2 = 22.4*Az*C*q2*T + pai*Dz*self.params.U*(T-self.params.T_we) # gas       [kcal / m * hr]
+
+            # df = pd.DataFrame(np.vstack((z, [KA, G1, G2, Q1, Q2])).T, columns=['z', 'KA', 'G1', 'G2', 'Q1', 'Q2'])
+            # df.to_csv('Tt_para_1.csv', index=False)
 
             z_low, z_high = z[t<1200], z[t>=1200]
             G1_low, G1_high = G1[t<1200], G1[t>=1200]
@@ -1961,18 +1688,17 @@ class HCFurnaceModel(FurnaceModel):
             t_low, T_low = t[t<1200], T[t<1200]
             A_low,a_low = setAa_n(N_low, z_diff_low, KA_low, G1_low, G2_low, T1in_low, T2in_low, Q1_low, Q2_low)
             X_low = solve(A_low, a_low)
-            t_low_new = np.asarray(X_low[0:N_low+1]).reshape(-1)
-            T_low_new = np.asarray(X_low[(N_low+1):(2*N_low+2)]).reshape(-1)
-            count_low = 0
+            t_low_new = X_low[0:N_low+1].ravel()
+            T_low_new = X_low[(N_low+1):(2*N_low+2)].ravel()
+            count = 0
             limit = 100
-            while(norm(T_low_new-T_low)/norm(T_low) >= 1e-3 or norm(t_low_new-t_low)/norm(t_low) >= 1e-3) and (count_low < limit):
-                count_low += 1
-                # print("Tt_hc, count_low = ", count_low)
+            while(norm(T_low_new-T_low)/norm(T_low) >= 1e-3 or norm(t_low_new-t_low)/norm(t_low) >= 1e-3) and (count < limit):
+                count += 1
                 t_low, T_low = t_low_new, T_low_new
                 A_low,a_low = setAa_n(N_low, z_diff_low, KA_low, G1_low, G2_low, T1in_low, T2in_low, Q1_low, Q2_low)
                 X_low = solve(A_low, a_low)
-                t_low_new = np.asarray(X_low[0:N_low+1]).reshape(-1)
-                T_low_new = np.asarray(X_low[(N_low+1):(2*N_low+2)]).reshape(-1)
+                t_low_new = X_low[0:N_low+1].ravel()
+                T_low_new = X_low[(N_low+1):(2*N_low+2)].ravel()
 
             z_diff_high = np.diff(z_high)
             N_high = len(z_diff_high)
@@ -1981,36 +1707,27 @@ class HCFurnaceModel(FurnaceModel):
             t_high, T_high = t[t>=1200], T[t>=1200]
             A_high,a_high = setAa_n(N_high, z_diff_high, KA_high, G1_high, G2_high, T1in_high, T2in_high, Q1_high, Q2_high)
             X_high = solve(A_high, a_high)
-            t_high_new = np.asarray(X_high[0:N_high+1]).reshape(-1)
-            T_high_new = np.asarray(X_high[(N_high+1):(2*N_high+2)]).reshape(-1)
-            count_high = 0
+            t_high_new = X_high[0:N_high+1].ravel()
+            T_high_new = X_high[(N_high+1):(2*N_high+2)].ravel()
+            count = 0
             limit = 100
-            while(norm(T_high_new-T_high)/norm(T_high) >= 1e-3 or norm(t_high_new-t_high)/norm(t_high) >= 1e-3) and (count_high < limit):
-                count_high += 1
-                # print("Tt_hc, count_high = ", count_high)
+            while(norm(T_high_new-T_high)/norm(T_high) >= 1e-3 or norm(t_high_new-t_high)/norm(t_high) >= 1e-3) and (count < limit):
+                count += 1
                 t_high, T_high = t_high_new, T_high_new
                 A_high,a_high = setAa_n(N_high, z_diff_high, KA_high, G1_high, G2_high, T1in_high, T2in_high, Q1_high, Q2_high)
                 X_high = solve(A_high, a_high)
-                t_high_new = np.asarray(X_high[0:N_high+1]).reshape(-1)
-                T_high_new = np.asarray(X_high[(N_high+1):(2*N_high+2)]).reshape(-1)
+                t_high_new = X_high[0:N_high+1].ravel()
+                T_high_new = X_high[(N_high+1):(2*N_high+2)].ravel()
 
             T_new = np.concatenate((T_low_new, T_high_new))
             t_new = np.concatenate((t_low_new, t_high_new))
-            
-            # plt.plot(z, T_new, label='Tnew')
-            # plt.plot(z, t_new, label='tnew')
-            # plt.legend()
-            # plt.show()
+            current_state.update({'T': T_new, 't': t_new})
+            return current_state
 
-            # plt.plot(z, T_new-T, label='Tnew-T')
-            # plt.plot(z, t_new-t, label='tnew-t')
-            # plt.legend()
-            # plt.show()
+        relaxed_state = self._relax_solver(z, state, update_fn, fields=['T', 't'])
+        return relaxed_state['T'], relaxed_state['t']
 
-        # print("Tt_hc, total count = ", count_out)
-        return T_new, t_new
-
-    def xy_hc(self,z,T,t,fs,fl,x,y,w,p):
+    def xy_hc(self,z,state):
         """
         
         Args:
@@ -2020,121 +1737,15 @@ class HCFurnaceModel(FurnaceModel):
             x_new (numpy.ndarray): profile of molar fraction of CO in bulk of gas. [-]
             y_new (numpy.ndarray): profile of molar fraction of CO2 in bulk of gas. [-]
         """
-        x_in = self.params.x_in
-        y_in = self.params.y_in
-
-        Dz = self.params.Diameter_BF(z) # Dz (float): Diameter of blast furnace. [m]
-        Az = pai * (Dz/2)**2 # Az (float): cross-sectional area of coke-bed. [m2]
-        miu = self.Viscosity_Gas(T) # miu (float): viscosity of blast furnace gas. [kg / m * hr]
-        F = self.VolumeRate_Gas(x,y)   # F (float): volume rate of flow of gas. [Nm3 / hr]
-        u = F/Az * T/T_std * P_std/p # u (float): superficial velocity of gas. [m / hr]
-        D_CO = self.DiffusionCoefficient_CO(t,p)
-        rho = self.Density_Gas(x,y,w) # rho (float): density of blast furnace gas. [kg / Nm3]
-        Re = self.params.d_o * u * rho / miu
-
-        Sc = miu / rho / D_CO
-        Sh = 2.0 + 0.55*Re**(1/2)*Sc**(1/3)
-        kf = self.TransferCoefficient_Gas(Sh,D_CO,self.params.d_o)  # kf (float): gas-film mass transfer coefficient in reaction. [m / hr]
-
-        epsilon_v = 0.53 + 0.47 * self.params.epsilon_o
-        xi = 0.238 * self.params.epsilon_o + 0.04
-        Ds = D_CO * epsilon_v * xi # Ds (float): intraparticle diffusion coefficient of CO in reduced iron phase. [m2 / hr]
-
-        k1 = 347 * np.exp(-3460/t) # k (float): rate constant of reaction. [m / hr]
-
-        K1 = self.smooth_R1(t,fs) # K (float): equilibrium constant of reaction. [-]
-        kappa_1 = pai * self.params.d_o**2 * self.params.phi_o**(-1) * self.params.N_o * (p/P_std) * 273 / 22.4 / t / (1/kf + self.params.d_o/2*((1-fs+eps)**(-1/3) - 1)/Ds + ((1-fs+eps)**(2/3)*k1*(1+1/K1))**(-1))
-        KA = Az*kappa_1 # transfer coefficient [Nm3 / m * hr]
-
-        R1 = self.ReactionRate_1(z,T,t,fs,x,y,w,p)
-        R2 = self.ReactionRate_2(z,T,t,fs,x,y,w,p)
-        R4 = self.ReactionRate_4(z,T,t,fl,x,y,w,p)
-        R6 = self.ReactionRate_6(z,T,t,x,y,w,p)
-        R7 = self.ReactionRate_7(T,x,y,w,p)
-
-        G1 = F/22.4 * (1+K1)/K1  # G1 (float): capacity flow of x. [kmol / hr]
-        G2 = F/22.4 * (1+K1)/K1  # G2 (float): capacity flow of y. [kmol / hr]
-
-        R2 = np.where(t<1200, R2, R2+R1+R4+R7)
-        Q1 = Az*((K1-1)/(1+K1)*kappa_1*y + (x-2)*R2 + x*R4 + (x-1)*R6 + R7) * (1+K1)/K1
-        Q2 = Az*(-(K1-1)/(1+K1)*kappa_1*y + (y+1)*R2 + (y-1)*R4 + y*R6 - R7) * (1+K1)/K1
-
-        z_low, z_high = z[t<1200], z[t>=1200]
-        G1_low, G1_high = G1[t<1200], G1[t>=1200]
-        G2_low, G2_high = G2[t<1200], G2[t>=1200]
-        KA_low, KA_high = KA[t<1200], KA[t>=1200]
-        Q1_low, Q1_high = Q1[t<1200], Q1[t>=1200]
-        Q2_low, Q2_high = Q2[t<1200], Q2[t>=1200]
-        G1_low = (G1_low[1:] + G1_low[:-1]) / 2 
-        G2_low = (G2_low[1:] + G2_low[:-1]) / 2
-        KA_low = (KA_low[1:] + KA_low[:-1]) / 2
-        Q1_low = (Q1_low[1:] + Q1_low[:-1]) / 2
-        Q2_low = (Q2_low[1:] + Q2_low[:-1]) / 2
-        G1_high = (G1_high[1:] + G1_high[:-1]) / 2 
-        G2_high = (G2_high[1:] + G2_high[:-1]) / 2
-        KA_high = (KA_high[1:] + KA_high[:-1]) / 2
-        Q1_high = (Q1_high[1:] + Q1_high[:-1]) / 2
-        Q2_high = (Q2_high[1:] + Q2_high[:-1]) / 2   
-
-        z_diff_low = np.diff(z_low)
-        N_low = len(z_diff_low)
-        xin_low = x[N_low]
-        yin_low = y[N_low]
-        x_low, y_low = x[t<1200], y[t<1200]
-        A_low,a_low = setAa_s(N_low, z_diff_low, KA_low, G1_low, G2_low, xin_low, yin_low, Q1_low, Q2_low)
-        X_low = solve(A_low, a_low)
-        x_low_new = np.asarray(X_low[0:N_low+1]).reshape(-1)
-        y_low_new = np.asarray(X_low[(N_low+1):(2*N_low+2)]).reshape(-1)
-        count_low = 0
-        limit = 100
-        while(norm(x_low_new-x_low) >= 1e-3*N_low**0.5 or norm(y_low_new-y_low) >= 1e-3*N_low**0.5) and (count_low < limit):
-            count_low += 1
-            # print("xy_hc, count_low = ", count_low)
-            x_low, y_low = x_low_new, y_low_new
-            A_low,a_low = setAa_s(N_low, z_diff_low, KA_low, G1_low, G2_low, xin_low, yin_low, Q1_low, Q2_low)
-            X_low = solve(A_low, a_low)
-            x_low_new = np.asarray(X_low[0:N_low+1]).reshape(-1)
-            y_low_new = np.asarray(X_low[(N_low+1):(2*N_low+2)]).reshape(-1)
-
-        z_diff_high = np.diff(z_high)
-        N_high = len(z_diff_high)
-        xin_high = self.params.x_in
-        yin_high = self.params.y_in
-        x_high, y_high = x[t>=1200], y[t>=1200]
-        A_high,a_high = setAa_s(N_high, z_diff_high, KA_high, G1_high, G2_high, xin_high, yin_high, Q1_high, Q2_high)
-        X_high = solve(A_high, a_high)
-        x_high_new = np.asarray(X_high[0:N_high+1]).reshape(-1)
-        y_high_new = np.asarray(X_high[(N_high+1):(2*N_high+2)]).reshape(-1)
-        count_high = 0
-        limit = 100
-        while(norm(x_high_new-x_high)/norm(x_high) >= 1e-3*N_high**0.5 or norm(y_high_new-y_high) >= 1e-3*N_high**0.5) and (count_high < limit):
-            count_high += 1
-            # print("xy_hc, count_high = ", count_high)
-            x_high, y_high = x_high_new, y_high_new
-            A_high,a_high = setAa_s(N_high, z_diff_high, KA_high, G1_high, G2_high, xin_high, yin_high, Q1_high, Q2_high)
-            X_high = solve(A_high, a_high)
-            x_high_new = np.asarray(X_high[0:N_high+1]).reshape(-1)
-            y_high_new = np.asarray(X_high[(N_high+1):(2*N_high+2)]).reshape(-1)
-
-        x_new = np.concatenate((x_low_new, x_high_new))
-        y_new = np.concatenate((y_low_new, y_high_new))
-
-        count_out = 0
-        limit = 100
-        s = 0.5
-        while(norm(x_new-x)/norm(x) >= 1e-3 or norm(y_new-y)/norm(y) >= 1e-3) and (count_out < limit):
-            count_out += 1
-            # print("xy_hc, count_out = ", count_out)
-            # print("norm(x_new-x)/norm(x) = ", norm(x_new-x)/norm(x))
-            # print("norm(y_new-y)/norm(y) = ", norm(y_new-y)/norm(y))
-            x = s*x_new + (1-s)*x
-            y = s*y_new + (1-s)*y
-
-            x = np.clip(x, 0, 1)
-            y = np.clip(y, 0, 1-x-eps)
-
+        def update_fn(z, state):
+            state = self._clamp_state(**state)
+            T, t, fs, fl, x, y, w, p = state['T'], state['t'], state['fs'], state['fl'], state['x'], state['y'], state['w'], state['p']
+            Dz = self.params.Diameter_BF(z) # Dz (float): Diameter of blast furnace. [m]
+            Az = pai * (Dz/2)**2 # Az (float): cross-sectional area of coke-bed. [m2]
+            miu = self.Viscosity_Gas(T) # miu (float): viscosity of blast furnace gas. [kg / m * hr]
             F = self.VolumeRate_Gas(x,y)   # F (float): volume rate of flow of gas. [Nm3 / hr]
             u = F/Az * T/T_std * P_std/p # u (float): superficial velocity of gas. [m / hr]
+            D_CO = self.DiffusionCoefficient_CO(t,p)
             rho = self.Density_Gas(x,y,w) # rho (float): density of blast furnace gas. [kg / Nm3]
             Re = self.params.d_o * u * rho / miu
 
@@ -2142,8 +1753,14 @@ class HCFurnaceModel(FurnaceModel):
             Sh = 2.0 + 0.55*Re**(1/2)*Sc**(1/3)
             kf = self.TransferCoefficient_Gas(Sh,D_CO,self.params.d_o)  # kf (float): gas-film mass transfer coefficient in reaction. [m / hr]
 
-            kappa_1 = pai * self.params.d_o**2 * self.params.phi_o**(-1) * self.params.N_o * (p/P_std) * 273 / 22.4 / t / (1/kf + self.params.d_o/2*((1-fs+eps)**(-1/3) - 1)/Ds + ((1-fs+eps)**(2/3)*k1*(1+1/K1))**(-1))
+            epsilon_v = 0.53 + 0.47 * self.params.epsilon_o
+            xi = 0.238 * self.params.epsilon_o + 0.04
+            Ds = D_CO * epsilon_v * xi # Ds (float): intraparticle diffusion coefficient of CO in reduced iron phase. [m2 / hr]
 
+            k1 = 347 * np.exp(-3460/t) # k (float): rate constant of reaction. [m / hr]
+
+            K1 = self.smooth_R1(t,fs) # K (float): equilibrium constant of reaction. [-]
+            kappa_1 = pai * self.params.d_o**2 * self.params.phi_o**(-1) * self.params.N_o * (p/P_std) * 273 / 22.4 / t / (1/kf + self.params.d_o/2*((1-fs+eps)**(-1/3) - 1)/Ds + ((1-fs+eps)**(2/3)*k1*(1+1/K1))**(-1))
             KA = Az*kappa_1 # transfer coefficient [Nm3 / m * hr]
 
             R1 = self.ReactionRate_1(z,T,t,fs,x,y,w,p)
@@ -2176,10 +1793,6 @@ class HCFurnaceModel(FurnaceModel):
             Q1_high = (Q1_high[1:] + Q1_high[:-1]) / 2
             Q2_high = (Q2_high[1:] + Q2_high[:-1]) / 2   
 
-            z_diff = np.diff(z)
-            N = len(z_diff)
-            A_temp,a_temp = setAa_s(N, z_diff, KA, G1, G2, x_in, y_in, Q1, Q2)
-
             z_diff_low = np.diff(z_low)
             N_low = len(z_diff_low)
             xin_low = x[N_low]
@@ -2187,20 +1800,18 @@ class HCFurnaceModel(FurnaceModel):
             x_low, y_low = x[t<1200], y[t<1200]
             A_low,a_low = setAa_s(N_low, z_diff_low, KA_low, G1_low, G2_low, xin_low, yin_low, Q1_low, Q2_low)
             X_low = solve(A_low, a_low)
-            x_low_new = np.asarray(X_low[0:N_low+1]).reshape(-1)
-            y_low_new = np.asarray(X_low[(N_low+1):(2*N_low+2)]).reshape(-1)
+            x_low_new = X_low[0:N_low+1].ravel()
+            y_low_new = X_low[(N_low+1):(2*N_low+2)].ravel()
             count_low = 0
             limit = 100
-            while(norm(x_low_new-x_low) >= 1e-4*N_low**0.5 or norm(y_low_new-y_low) >= 1e-4*N_low**0.5) and (count_low < limit):
+            while(norm(x_low_new-x_low) >= 1e-3*N_low**0.5 or norm(y_low_new-y_low) >= 1e-3*N_low**0.5) and (count_low < limit):
                 count_low += 1
                 # print("xy_hc, count_low = ", count_low)
-                # print("norm(x_low_new-x_low) = ", norm(x_low_new-x_low))
-                # print("norm(y_low_new-y_low) = ", norm(y_low_new-y_low))
                 x_low, y_low = x_low_new, y_low_new
                 A_low,a_low = setAa_s(N_low, z_diff_low, KA_low, G1_low, G2_low, xin_low, yin_low, Q1_low, Q2_low)
                 X_low = solve(A_low, a_low)
-                x_low_new = np.asarray(X_low[0:N_low+1]).reshape(-1)
-                y_low_new = np.asarray(X_low[(N_low+1):(2*N_low+2)]).reshape(-1)
+                x_low_new = X_low[0:N_low+1].ravel()
+                y_low_new = X_low[(N_low+1):(2*N_low+2)].ravel()
 
             z_diff_high = np.diff(z_high)
             N_high = len(z_diff_high)
@@ -2209,137 +1820,54 @@ class HCFurnaceModel(FurnaceModel):
             x_high, y_high = x[t>=1200], y[t>=1200]
             A_high,a_high = setAa_s(N_high, z_diff_high, KA_high, G1_high, G2_high, xin_high, yin_high, Q1_high, Q2_high)
             X_high = solve(A_high, a_high)
-            x_high_new = np.asarray(X_high[0:N_high+1]).reshape(-1)
-            y_high_new = np.asarray(X_high[(N_high+1):(2*N_high+2)]).reshape(-1)
+            x_high_new = X_high[0:N_high+1].ravel()
+            y_high_new = X_high[(N_high+1):(2*N_high+2)].ravel()
             count_high = 0
             limit = 100
-            while(norm(x_high_new-x_high) >= 1e-4*N_high**0.5 or norm(y_high_new-y_high) >= 1e-4*N_high**0.5) and (count_high < limit):
+            while(norm(x_high_new-x_high)/norm(x_high) >= 1e-3*N_high**0.5 or norm(y_high_new-y_high) >= 1e-3*N_high**0.5) and (count_high < limit):
                 count_high += 1
                 # print("xy_hc, count_high = ", count_high)
-                # print("norm(x_high_new-x_high) = ", norm(x_high_new-x_high))
-                # print("norm(y_high_new-y_high) = ", norm(y_high_new-y_high))
-                x_high, y_high = x_high_new, y_high_new
                 x_high, y_high = x_high_new, y_high_new
                 A_high,a_high = setAa_s(N_high, z_diff_high, KA_high, G1_high, G2_high, xin_high, yin_high, Q1_high, Q2_high)
                 X_high = solve(A_high, a_high)
-                x_high_new = np.asarray(X_high[0:N_high+1]).reshape(-1)
-                y_high_new = np.asarray(X_high[(N_high+1):(2*N_high+2)]).reshape(-1)
+                x_high_new = X_high[0:N_high+1].ravel()
+                y_high_new = X_high[(N_high+1):(2*N_high+2)].ravel()
 
             x_new = np.concatenate((x_low_new, x_high_new))
             y_new = np.concatenate((y_low_new, y_high_new))
+            state.update({'x': x_new, 'y': y_new})
+            return state
 
-            # plt.plot(z, x_new, label='xnew')
-            # plt.plot(z, y_new, label='ynew')
-            # plt.legend()
-            # plt.show()
+        relaxed_state = self._relax_solver(z, state, update_fn, fields=['x', 'y'])
+        return relaxed_state['x'], relaxed_state['y']
 
-            # plt.plot(z, x_new-x, label='xnew-x')
-            # plt.plot(z, y_new-y, label='ynew-y')
-            # plt.legend()
-            # plt.show()
-        
-        return x_new, y_new
-
-    def w_hc(self,z,T,t,fs,fl,x,y,w,p):
+    def w_hc(self,z,state):
         """
         
         Args:
-            z (numpy.ndarray): axial position of coke-bed. [m]
+            state (dict): dictionary of state variables.
             T, t, fs, fl, x, y, w, p (numpy.ndarray)
         Returns:
             w_new (numpy.ndarray): profile of molar fraction of H2 in bulk of gas. [-]
         """
-        w_in = self.params.w_in
-
-        Dz = self.params.Diameter_BF(z) # Dz (float): diameter of coke-bed. [m]
-        Az = pai * (Dz/2)**2 # Az (float): cross-sectional area of coke-bed. [m2] 
-        F = self.VolumeRate_Gas(x,y)   # F (float): volume rate of flow of gas. [Nm3 / hr]
-        u = F/Az * T/T_std * P_std/p # u (float): superficial velocity of gas. [m / hr]
-        miu = self.Viscosity_Gas(T) # miu (float): viscosity of blast furnace gas. [kg / m * hr]
-        rho = self.Density_Gas(x,y,w) # rho (float): density of blast furnace gas. [kg / Nm3]
-        Re = self.params.d_o * u * rho / miu
-        D_H2 = 3.960E-6*t**1.78 / (p/P_std) # D_H2 (float): diffusion coefficient of H2 in blast furnace gas. [m2 / hr]
-        Sc = miu / rho / D_H2
-        Sh = 2.0 + 0.55*Re**(1/2)*Sc**(1/3)
-        kf = self.TransferCoefficient_Gas(Sh,D_H2,self.params.d_o)  # kf (float): gas-film mass transfer coefficient in reaction. [m / hr]
-        epsilon_v = 0.53 + 0.47 * self.params.epsilon_o
-        xi = 0.238 * self.params.epsilon_o + 0.04
-        Ds = D_H2 * epsilon_v * xi # Ds (float): intraparticle diffusion coefficient of H2 in reduced iron phase. [m2 / hr]
-        k,K = self.smooth_R5(t)  # smoothed k,K
-
-        kappa_5 = pai * self.params.d_o**(2) * self.params.phi_o**(-1) * self.params.N_o * (p/P_std) * 273 / 22.4 / t / (1/kf + self.params.d_o/2*((1-fs+eps)**(-1/3) - 1)/Ds + ((1-fs+eps)**(2/3)*k*(1+1/K))**(-1))
-
-        R1 = self.ReactionRate_1(z,T,t,fs,x,y,w,p)
-        R2 = self.ReactionRate_2(z,T,t,fs,x,y,w,p)
-        R4 = self.ReactionRate_4(z,T,t,fl,x,y,w,p)
-        R6 = self.ReactionRate_6(z,T,t,x,y,w,p)
-        R7 = self.ReactionRate_7(T,x,y,w,p)
-
-        R2 = np.where(t<1200,R2,R2+R1+R4+R7)
-        a_list = 22.4*Az*kappa_5/F
-        b_list = 22.4*Az*(w*R2 + w*R4 - kappa_5*self.params.F_0*(self.params.w_0+self.params.v_0)/F/(1+K) + (w-1)*R6 - R7) / F
-
-        R5 = self.ReactionRate_5(z,T,t,fs,x,y,w,p)
-        a_list[R5<=0] = 0
-        b_list[R5<=0] = 22.4*Az[R5<=0]*(w[R5<=0]*R2[R5<=0] + w[R5<=0]*R4[R5<=0] + (w[R5<=0]-1)*R6[R5<=0] - R7[R5<=0]) / F[R5<=0]
-        
-        a_list_low, a_list_high = a_list[t<1200], a_list[t>=1200]
-        b_list_low, b_list_high = b_list[t<1200], b_list[t>=1200]
-
-        a_list_low = (a_list_low[1:] + a_list_low[:-1]) / 2
-        b_list_low = (b_list_low[1:] + b_list_low[:-1]) / 2
-        a_list_high = (a_list_high[1:] + a_list_high[:-1]) / 2
-        b_list_high = (b_list_high[1:] + b_list_high[:-1]) / 2
-
-        z_low, z_high = z[t<1200], z[t>=1200]
-        w_low, w_high = w[t<1200], w[t>=1200]
-
-        z_diff_low = np.diff(z_low)
-        N_low = len(z_diff_low)
-        win_low = w[N_low]
-        A_low,a_low = setAa_linear_n(N_low, z_diff_low, win_low, a_list_low, b_list_low)
-        X_low = solve(A_low, a_low)
-        w_low_new = np.asarray(X_low).reshape(-1)
-        count_low = 0
-        limit = 100
-        while(norm(w_low_new-w_low) >= 1e-4*N_low**0.5) and (count_low < limit):
-            count_low += 1
-            w_low = w_low_new
-            A_low,a_low = setAa_linear_n(N_low, z_diff_low, win_low, a_list_low, b_list_low)
-            X_low = solve(A_low, a_low)
-            w_low_new = np.asarray(X_low).reshape(-1)
-
-        z_diff_high = np.diff(z_high)
-        N_high = len(z_diff_high)
-        win_high = self.params.w_in
-        A_high,a_high = setAa_linear_n(N_high, z_diff_high, win_high, a_list_high, b_list_high)
-        X_high = solve(A_high, a_high)
-        w_high_new = np.asarray(X_high).reshape(-1)
-        count_high = 0
-        limit = 100
-        while(norm(w_high_new-w_high) >= 1e-4*N_high**0.5) and (count_high < limit):
-            count_high += 1
-            w_high = w_high_new
-            A_high,a_high = setAa_linear_n(N_high, z_diff_high, win_high, a_list_high, b_list_high)
-            X_high = solve(A_high, a_high)
-            w_high_new = np.asarray(X_high).reshape(-1)
-
-        w_new = np.concatenate((w_low_new, w_high_new))
-
-        count_out = 0
-        limit = 100
-        s = 0.5
-        while(norm(w_new - w) / norm(w) >= 1e-3) and (count_out < limit):
-            count_out += 1
-            # print("w_hc, count_out = ", count_out)
-            # print("norm(b-Ax)/norm(b) = ", norm(a_temp - A_temp@X_previous) / norm(a_temp))
-            w = s*w_new + (1-s)*w
-
+        def update_fn(z, state):
+            state = self._clamp_state(**state)
+            T, t, fs, fl, x, y, w, p = state['T'], state['t'], state['fs'], state['fl'], state['x'], state['y'], state['w'], state['p']
+            Dz = self.params.Diameter_BF(z) # Dz (float): diameter of coke-bed. [m]
+            Az = pai * (Dz/2)**2 # Az (float): cross-sectional area of coke-bed. [m2] 
+            F = self.VolumeRate_Gas(x,y)   # F (float): volume rate of flow of gas. [Nm3 / hr]
+            u = F/Az * T/T_std * P_std/p # u (float): superficial velocity of gas. [m / hr]
+            miu = self.Viscosity_Gas(T) # miu (float): viscosity of blast furnace gas. [kg / m * hr]
             rho = self.Density_Gas(x,y,w) # rho (float): density of blast furnace gas. [kg / Nm3]
             Re = self.params.d_o * u * rho / miu
+            D_H2 = 3.960E-6*t**1.78 / (p/P_std) # D_H2 (float): diffusion coefficient of H2 in blast furnace gas. [m2 / hr]
             Sc = miu / rho / D_H2
             Sh = 2.0 + 0.55*Re**(1/2)*Sc**(1/3)
-            kf = Sh * D_H2 / self.params.d_o  # kf (float): gas-film mass transfer coefficient in reaction. [m / hr]
+            kf = self.TransferCoefficient_Gas(Sh,D_H2,self.params.d_o)  # kf (float): gas-film mass transfer coefficient in reaction. [m / hr]
+            epsilon_v = 0.53 + 0.47 * self.params.epsilon_o
+            xi = 0.238 * self.params.epsilon_o + 0.04
+            Ds = D_H2 * epsilon_v * xi # Ds (float): intraparticle diffusion coefficient of H2 in reduced iron phase. [m2 / hr]
+            k,K = self.smooth_R5(t)  # smoothed k,K
 
             kappa_5 = pai * self.params.d_o**(2) * self.params.phi_o**(-1) * self.params.N_o * (p/P_std) * 273 / 22.4 / t / (1/kf + self.params.d_o/2*((1-fs+eps)**(-1/3) - 1)/Ds + ((1-fs+eps)**(2/3)*k*(1+1/K))**(-1))
 
@@ -2373,39 +1901,39 @@ class HCFurnaceModel(FurnaceModel):
             win_low = w[N_low]
             A_low,a_low = setAa_linear_n(N_low, z_diff_low, win_low, a_list_low, b_list_low)
             X_low = solve(A_low, a_low)
-            w_low_new = np.asarray(X_low).reshape(-1)
+            w_low_new = X_low.ravel()
             count_low = 0
             limit = 100
             while(norm(w_low_new-w_low) >= 1e-4*N_low**0.5) and (count_low < limit):
                 count_low += 1
-                # print("w_hc, count_low = ", count_low)
                 w_low = w_low_new
                 A_low,a_low = setAa_linear_n(N_low, z_diff_low, win_low, a_list_low, b_list_low)
                 X_low = solve(A_low, a_low)
-                w_low_new = np.asarray(X_low).reshape(-1)
+                w_low_new = X_low.ravel()
 
             z_diff_high = np.diff(z_high)
             N_high = len(z_diff_high)
             win_high = self.params.w_in
             A_high,a_high = setAa_linear_n(N_high, z_diff_high, win_high, a_list_high, b_list_high)
             X_high = solve(A_high, a_high)
-            w_high_new = np.asarray(X_high).reshape(-1)
+            w_high_new = X_high.ravel()
             count_high = 0
             limit = 100
             while(norm(w_high_new-w_high) >= 1e-4*N_high**0.5) and (count_high < limit):
                 count_high += 1
-                # print("w_hc, count_high = ", count_high)
                 w_high = w_high_new
                 A_high,a_high = setAa_linear_n(N_high, z_diff_high, win_high, a_list_high, b_list_high)
                 X_high = solve(A_high, a_high)
-                w_high_new = np.asarray(X_high).reshape(-1)
+                w_high_new = X_high.ravel()
 
             w_new = np.concatenate((w_low_new, w_high_new))
-        # print("norm(b-Ax)/norm(b) = ", norm(a_temp - A_temp@X_previous) / norm(a_temp))
-        # print("w_hc, total count = ", count)
-        return w_new
+            state.update({'w': w_new})
+            return state
 
-    def p_hc(self,z,T,x,y,w,p):
+        relaxed_state = self._relax_solver(z, state, update_fn, fields=['w'])
+        return relaxed_state['w']
+
+    def p_hc(self,z,state):
         """
         
         Args:
@@ -2415,6 +1943,9 @@ class HCFurnaceModel(FurnaceModel):
             p_new (numpy.ndarray): profile of pressure of gas. [Kg / m2]
         """
         p2_in = self.params.p_in**2
+
+        state = self._clamp_state(**state)
+        T, x, y, w = state['T'], state['x'], state['y'], state['w']
 
         Dz = self.params.Diameter_BF(z) # Dz (float): diameter of coke-bed. [m]
         Az = pai * (Dz/2)**2 # Az (float): cross-sectional area of coke-bed. [m2]
@@ -2434,12 +1965,12 @@ class HCFurnaceModel(FurnaceModel):
         A_temp,a_temp = setAa_p(N, z_diff, p2_in, a_list)
         X_temp = solve(A_temp, a_temp)
         # print(X_temp.shape)
-        p2_new = np.asarray(X_temp).reshape(-1)
+        p2_new = X_temp.ravel()
         p_new = np.sqrt(p2_new)
 
         return p_new
 
-    def fs_hc(self,z,T,t,fs,x,y,w,p):
+    def fs_hc(self,z,state):
         """
         
         Args:
@@ -2450,36 +1981,14 @@ class HCFurnaceModel(FurnaceModel):
         """
         fs_in = self.params.fs_in
 
-        Dz = self.params.Diameter_BF(z) # Dz (float): diameter of coke-bed. [m]
-        Az = pai * (Dz/2)**2 # Az (float): cross-sectional area of coke-bed. [m2]
-
-        R1 = self.ReactionRate_1(z,T,t,fs,x,y,w,p)
-        # R3 = ReactionRate_3(t,fs)
-        R5 = self.ReactionRate_5(z,T,t,fs,x,y,w,p)
-
-        dd = Az * (R1 + R5) / 3 / self.params.Fs / self.params.c_H0
-
-        a_list = dd
-        a_list = (a_list[1:] + a_list[:-1]) / 2
-
-        z_diff = np.diff(z)
-        N = len(z_diff)
-        A_temp,a_temp = setAa_constant_s(N, z_diff, fs_in, a_list)
-        X_temp = solve(A_temp, a_temp)
-        # print(X_temp.shape)
-        X_previous = fs.copy()
-        fs_new = np.asarray(X_temp).reshape(-1)
-
-        count = 0
-        limit = 100
-        s = 0.5
-        while(norm(fs_new-fs)/norm(fs) >= 1e-3) and (count < limit):
-            count += 1
-            # print("norm(b-Ax)/norm(b) = ", norm(a_temp - A_temp@X_previous) / norm(a_temp))
-            fs = s*fs_new + (1-s)*fs
-            fs = np.clip(fs, 0, 1)
+        def update_fn(z, state):
+            state = self._clamp_state(**state)
+            T, t, fs, x, y, w, p = state['T'], state['t'], state['fs'], state['x'], state['y'], state['w'], state['p']
+            Dz = self.params.Diameter_BF(z) # Dz (float): diameter of coke-bed. [m]
+            Az = pai * (Dz/2)**2 # Az (float): cross-sectional area of coke-bed. [m2]
 
             R1 = self.ReactionRate_1(z,T,t,fs,x,y,w,p)
+            # R3 = ReactionRate_3(t,fs)
             R5 = self.ReactionRate_5(z,T,t,fs,x,y,w,p)
 
             dd = Az * (R1 + R5) / 3 / self.params.Fs / self.params.c_H0
@@ -2491,15 +2000,15 @@ class HCFurnaceModel(FurnaceModel):
             N = len(z_diff)
             A_temp,a_temp = setAa_constant_s(N, z_diff, fs_in, a_list)
             X_temp = solve(A_temp, a_temp)
-            # print(X_temp.shape)
-            X_previous = fs.copy()
-            
-            fs_new = np.asarray(X_temp).reshape(-1)
-        # print("norm(b-Ax)/norm(b) = ", norm(a_temp - A_temp@X_previous) / norm(a_temp))
-        # print("fs_hc total count = ", count)
-        return fs_new
+  
+            fs_new = X_temp.ravel()
+            state.update({'fs': fs_new})
+            return state
+        relaxed_state = self._relax_solver(z, state, update_fn, fields=['fs'])
+        return relaxed_state['fs']
 
-    def fl_hc(self,z,T,t,fl,x,y,w,p):
+
+    def fl_hc(self,z,state):
         """
         Args:
             z (numpy.ndarray): axial position of coke-bed. [m]
@@ -2508,31 +2017,11 @@ class HCFurnaceModel(FurnaceModel):
             fl_new (numpy.ndarray): profile of fraction of decomposition of limestone. [-]
         """
         fl_in = self.params.fl_in
-
-        Dz = self.params.Diameter_BF(z) # Dz (float): diameter of coke-bed. [m]
-        Az = pai * (Dz/2)**2 # Az (float): cross-sectional area of coke-bed. [m2]
-
-        R4 = self.ReactionRate_4(z,T,t,fl,x,y,w,p)
-
-        a_list = Az*R4 / self.params.Fs / self.params.c_L0
-        a_list = (a_list[1:] + a_list[:-1]) / 2
-
-        z_diff = np.diff(z)
-        N = len(z_diff)
-        A_temp,a_temp = setAa_constant_s(N, z_diff, fl_in, a_list)
-        X_temp = solve(A_temp, a_temp)
-        # print(X_temp.shape)
-        X_previous = fl.copy()
-        fl_new = np.asarray(X_temp).reshape(-1)
-
-        count = 0
-        limit = 100
-        s = 0.5
-        while(norm(fl_new-fl)/norm(fl) >= 1e-3) and (count < limit):
-            count += 1
-            # print("norm(b-Ax)/norm(b) = ", norm(a_temp - A_temp@X_previous) / norm(a_temp))
-            fl = s*fl_new + (1-s)*fl
-            fl = np.clip(fl, 0, 1)
+        def update_fn(z, state):
+            state = self._clamp_state(**state)
+            T, t, fl, x, y, w, p = state['T'], state['t'], state['fl'], state['x'], state['y'], state['w'], state['p']
+            Dz = self.params.Diameter_BF(z) # Dz (float): diameter of coke-bed. [m]
+            Az = pai * (Dz/2)**2 # Az (float): cross-sectional area of coke-bed. [m2]
 
             R4 = self.ReactionRate_4(z,T,t,fl,x,y,w,p)
 
@@ -2543,14 +2032,15 @@ class HCFurnaceModel(FurnaceModel):
             N = len(z_diff)
             A_temp,a_temp = setAa_constant_s(N, z_diff, fl_in, a_list)
             X_temp = solve(A_temp, a_temp)
-            # print(X_temp.shape)
-            X_previous = fl.copy()
-            fl_new = np.asarray(X_temp).reshape(-1)
-        # print("norm(b-Ax)/norm(b) = ", norm(a_temp - A_temp@X_previous) / norm(a_temp))
-        # print("fl_hc total count = ", count)
-        return fl_new
 
-    def rhob_hc(self,z,T,t,fs,fl,x,y,w,p,rhob):
+            fl_new = X_temp.ravel()
+            state.update({'fl': fl_new})
+            return state
+        relaxed_state = self._relax_solver(z, state, update_fn, fields=['fl'])
+        return relaxed_state['fl']
+
+
+    def rhob_hc(self,z,state):
         """
         Args:
             z (numpy.ndarray): axial position of coke-bed. [m]
@@ -2559,6 +2049,9 @@ class HCFurnaceModel(FurnaceModel):
             rhob_new (numpy.ndarray): profile of . [kg / m3]
         """
         rhob_in = self.params.rhob_in
+
+        state = self._clamp_state(**state)
+        T, t, fs, fl, x, y, w, p = state['T'], state['t'], state['fs'], state['fl'], state['x'], state['y'], state['w'], state['p']
 
         Dz = self.params.Diameter_BF(z) # Dz (float): diameter of coke-bed. [m]
         Az = pai * (Dz/2)**2 # Az (float): cross-sectional area of coke-bed. [m2]
@@ -2583,7 +2076,7 @@ class HCFurnaceModel(FurnaceModel):
         A_temp,a_temp = setAa_constant_s(N, z_diff, rhob_in, a_list)
         X_temp = solve(A_temp, a_temp)
         # print(X_temp.shape)
-        rhob_new = np.asarray(X_temp).reshape(-1)
+        rhob_new = X_temp.ravel()
 
         return rhob_new
     

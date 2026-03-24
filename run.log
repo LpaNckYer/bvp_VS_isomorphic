@@ -198,3 +198,353 @@ NameError: name 'z_diff' is not defined
 2026-03-20 09:19:22 - INFO - outer loop converged at iter 6
 2026-03-20 15:49:14 - INFO - test_hc_5n4 done
 2026-03-20 15:49:14 - INFO - 程序结束
+2026-03-24 20:18:51 - INFO - 程序开始运行
+2026-03-24 20:18:51 - INFO - 测试 hc_5n4
+2026-03-24 20:18:51 - ERROR - 程序出错: 'HCFurnaceModel' object has no attribute 'multi_value_interpolation'
+Traceback (most recent call last):
+  File "d:\Group\HyOCR\20260130\main.py", line 427, in <module>
+    main()
+    ~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 410, in main
+    test_hc_5n4()
+    ~~~~~~~~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 370, in test_hc_5n4
+    z_guess, state = model._build_initial_guess()
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 44, in _build_initial_guess
+    'T': self.multi_value_interpolation(H_ctrl, [y0[0], y1[0], y2[0], y3[0], yH[0]], self.params.initial_mesh),
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'HCFurnaceModel' object has no attribute 'multi_value_interpolation'
+2026-03-24 20:18:51 - INFO - 程序结束
+2026-03-24 20:20:49 - INFO - 程序开始运行
+2026-03-24 20:20:49 - INFO - 测试 hc_5n4
+2026-03-24 20:20:49 - ERROR - 程序出错: FurnaceModel.multi_value_interpolation() takes from 2 to 3 positional arguments but 4 were given
+Traceback (most recent call last):
+  File "d:\Group\HyOCR\20260130\main.py", line 427, in <module>
+    main()
+    ~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 410, in main
+    test_hc_5n4()
+    ~~~~~~~~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 370, in test_hc_5n4
+    z_guess, state = model._build_initial_guess()
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 56, in _build_initial_guess
+    'T': self.multi_value_interpolation(H_ctrl, [y0[0], y1[0], y2[0], y3[0], yH[0]], self.params.initial_mesh),
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: FurnaceModel.multi_value_interpolation() takes from 2 to 3 positional arguments but 4 were given
+2026-03-24 20:20:49 - INFO - 程序结束
+2026-03-24 20:22:33 - INFO - 程序开始运行
+2026-03-24 20:22:33 - INFO - 测试 hc_5n4
+2026-03-24 20:22:33 - ERROR - 程序出错: 'HCFurnaceModel' object is not subscriptable
+Traceback (most recent call last):
+  File "d:\Group\HyOCR\20260130\main.py", line 427, in <module>
+    main()
+    ~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 410, in main
+    test_hc_5n4()
+    ~~~~~~~~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 370, in test_hc_5n4
+    z_guess, state = model._build_initial_guess()
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 56, in _build_initial_guess
+    'T': self.multi_value_interpolation(H_ctrl, [y0[0], y1[0], y2[0], y3[0], yH[0]]),
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 43, in multi_value_interpolation
+    x_output = np.linspace(x_control[0], x_control[-1], num_output_points)
+                           ~~~~~~~~~^^^
+TypeError: 'HCFurnaceModel' object is not subscriptable
+2026-03-24 20:22:33 - INFO - 程序结束
+2026-03-24 20:28:40 - INFO - 程序开始运行
+2026-03-24 20:28:40 - INFO - 测试 hc_5n4
+2026-03-24 20:28:40 - ERROR - 程序出错: 'HCFurnaceModel' object is not subscriptable
+Traceback (most recent call last):
+  File "d:\Group\HyOCR\20260130\main.py", line 427, in <module>
+    main()
+    ~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 410, in main
+    test_hc_5n4()
+    ~~~~~~~~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 370, in test_hc_5n4
+    z_guess, state = model._build_initial_guess()
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 56, in _build_initial_guess
+    'T': self.multi_value_interpolation(H_ctrl, [y0[0], y1[0], y2[0], y3[0], yH[0]]),
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 43, in multi_value_interpolation
+    x_output = np.linspace(x_control[0], x_control[-1], num_output_points)
+                           ~~~~~~~~~^^^
+TypeError: 'HCFurnaceModel' object is not subscriptable
+2026-03-24 20:28:40 - INFO - 程序结束
+2026-03-24 20:51:55 - INFO - 程序开始运行
+2026-03-24 20:51:55 - INFO - 测试 hc_5n4
+2026-03-24 20:51:55 - INFO - [outer 1/10000] start
+2026-03-24 20:51:55 - ERROR - 程序出错: name 'x' is not defined
+Traceback (most recent call last):
+  File "d:\Group\HyOCR\20260130\main.py", line 427, in <module>
+    main()
+    ~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 410, in main
+    test_hc_5n4()
+    ~~~~~~~~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 372, in test_hc_5n4
+    state = converge_full(model, z_guess, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 341, in converge_full
+    state = converge_ttx_yfl(model, z, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 312, in converge_ttx_yfl
+    next_state = update_Ttxyfl(model, z, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 294, in update_Ttxyfl
+    T_new, t_new = model.Tt_hc(z,state)
+                   ~~~~~~~~~~~^^^^^^^^^
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1594, in Tt_hc
+    F = self.VolumeRate_Gas(x,y)   # F (float): volume rate of flow of gas. [Nm3 / hr]
+                            ^
+NameError: name 'x' is not defined
+2026-03-24 20:51:55 - INFO - 程序结束
+2026-03-24 20:52:59 - INFO - 程序开始运行
+2026-03-24 20:52:59 - INFO - 测试 hc_5n4
+2026-03-24 20:52:59 - INFO - [outer 1/10000] start
+2026-03-24 20:52:59 - ERROR - 程序出错: 'fs'
+Traceback (most recent call last):
+  File "d:\Group\HyOCR\20260130\main.py", line 427, in <module>
+    main()
+    ~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 410, in main
+    test_hc_5n4()
+    ~~~~~~~~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 372, in test_hc_5n4
+    state = converge_full(model, z_guess, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 341, in converge_full
+    state = converge_ttx_yfl(model, z, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 312, in converge_ttx_yfl
+    next_state = update_Ttxyfl(model, z, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 294, in update_Ttxyfl
+    T_new, t_new = model.Tt_hc(z,state)
+                   ~~~~~~~~~~~^^^^^^^^^
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1716, in Tt_hc
+    relaxed_state = self._relax_solver(z, state, update_fn, fields=['T', 't'])
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1572, in _relax_solver
+    new_vals = update_fn(current)
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1597, in update_fn
+    current_state = self._clamp_state(**current_state)
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 183, in _clamp_state
+    state['fs'] = np.clip(state['fs'], 0, 1)
+                          ~~~~~^^^^^^
+KeyError: 'fs'
+2026-03-24 20:52:59 - INFO - 程序结束
+2026-03-24 21:02:14 - INFO - 程序开始运行
+2026-03-24 21:02:14 - INFO - 测试 hc_5n4
+2026-03-24 21:02:14 - INFO - [outer 1/10000] start
+2026-03-24 21:02:14 - ERROR - 程序出错: 'fs'
+Traceback (most recent call last):
+  File "d:\Group\HyOCR\20260130\main.py", line 427, in <module>
+    main()
+    ~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 410, in main
+    test_hc_5n4()
+    ~~~~~~~~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 372, in test_hc_5n4
+    state = converge_full(model, z_guess, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 341, in converge_full
+    state = converge_ttx_yfl(model, z, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 312, in converge_ttx_yfl
+    next_state = update_Ttxyfl(model, z, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 294, in update_Ttxyfl
+    T_new, t_new = model.Tt_hc(z,state)
+                   ~~~~~~~~~~~^^^^^^^^^
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1728, in Tt_hc
+    relaxed_state = self._relax_solver(z, state, update_fn, fields=['T', 't'])
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1584, in _relax_solver
+    new_vals = update_fn(current)
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1610, in update_fn
+    T, t, fs, fl, x, y, w, p, rhob = current_state['T'], current_state['t'], current_state['fs'], current_state['fl'], current_state['x'], current_state['y'], current_state['w'], current_state['p'], current_state['rhob']
+                                                                             ~~~~~~~~~~~~~^^^^^^
+KeyError: 'fs'
+2026-03-24 21:02:14 - INFO - 程序结束
+2026-03-24 21:13:31 - INFO - 程序开始运行
+2026-03-24 21:13:31 - INFO - 测试 hc_5n4
+2026-03-24 21:13:31 - INFO - [outer 1/10000] start
+2026-03-24 21:13:31 - ERROR - 程序出错: 'fs'
+Traceback (most recent call last):
+  File "d:\Group\HyOCR\20260130\main.py", line 427, in <module>
+    main()
+    ~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 410, in main
+    test_hc_5n4()
+    ~~~~~~~~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 372, in test_hc_5n4
+    state = converge_full(model, z_guess, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 341, in converge_full
+    state = converge_ttx_yfl(model, z, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 312, in converge_ttx_yfl
+    next_state = update_Ttxyfl(model, z, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 294, in update_Ttxyfl
+    T_new, t_new = model.Tt_hc(z,state)
+                   ~~~~~~~~~~~^^^^^^^^^
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1728, in Tt_hc
+    relaxed_state = self._relax_solver(z, state, update_fn, fields=['T', 't'])
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1584, in _relax_solver
+    new_vals = update_fn(current)
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1610, in update_fn
+    T, t, fs, fl, x, y, w, p, rhob = current_state['T'], current_state['t'], current_state['fs'], current_state['fl'], current_state['x'], current_state['y'], current_state['w'], current_state['p'], current_state['rhob']
+                                                                             ~~~~~~~~~~~~~^^^^^^
+KeyError: 'fs'
+2026-03-24 21:13:31 - INFO - 程序结束
+2026-03-24 21:23:19 - INFO - 程序开始运行
+2026-03-24 21:23:19 - INFO - 测试 hc_5n4
+2026-03-24 21:23:19 - INFO - [outer 1/10000] start
+2026-03-24 21:23:21 - ERROR - 程序出错: 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "d:\Group\HyOCR\20260130\main.py", line 427, in <module>
+    main()
+    ~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 410, in main
+    test_hc_5n4()
+    ~~~~~~~~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 372, in test_hc_5n4
+    state = converge_full(model, z_guess, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 341, in converge_full
+    state = converge_ttx_yfl(model, z, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 312, in converge_ttx_yfl
+    next_state = update_Ttxyfl(model, z, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 294, in update_Ttxyfl
+    T_new, t_new = model.Tt_hc(z,state)
+                   ~~~~~~~~~~~^^^^^^^^^
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1729, in Tt_hc
+    relaxed_state = self._relax_solver(z, state, update_fn, fields=['T', 't'])
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1585, in _relax_solver
+    error = sum(norm(new_vals[k] - current[k]) / norm(current[k]) for k in fields) / len(fields)
+            ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1585, in <genexpr>
+    error = sum(norm(new_vals[k] - current[k]) / norm(current[k]) for k in fields) / len(fields)
+                     ~~~~~~~~^^^
+TypeError: 'NoneType' object is not subscriptable
+2026-03-24 21:23:21 - INFO - 程序结束
+2026-03-24 21:25:33 - INFO - 程序开始运行
+2026-03-24 21:25:33 - INFO - 测试 hc_5n4
+2026-03-24 21:25:33 - INFO - [outer 1/10000] start
+2026-03-24 21:25:36 - ERROR - 程序出错: 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "d:\Group\HyOCR\20260130\main.py", line 427, in <module>
+    main()
+    ~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 410, in main
+    test_hc_5n4()
+    ~~~~~~~~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 372, in test_hc_5n4
+    state = converge_full(model, z_guess, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 341, in converge_full
+    state = converge_ttx_yfl(model, z, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 312, in converge_ttx_yfl
+    next_state = update_Ttxyfl(model, z, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 294, in update_Ttxyfl
+    T_new, t_new = model.Tt_hc(z,state)
+                   ~~~~~~~~~~~^^^^^^^^^
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1727, in Tt_hc
+    relaxed_state = self._relax_solver(z, state, update_fn, fields=['T', 't'])
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1584, in _relax_solver
+    error = sum(norm(new_vals[k] - state[k]) / norm(state[k]) for k in fields) / len(fields)
+            ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1584, in <genexpr>
+    error = sum(norm(new_vals[k] - state[k]) / norm(state[k]) for k in fields) / len(fields)
+                     ~~~~~~~~^^^
+TypeError: 'NoneType' object is not subscriptable
+2026-03-24 21:25:36 - INFO - 程序结束
+2026-03-24 21:27:00 - INFO - 程序开始运行
+2026-03-24 21:27:00 - INFO - 测试 hc_5n4
+2026-03-24 21:27:00 - INFO - [outer 1/10000] start
+2026-03-24 21:28:00 - ERROR - 程序出错: too many values to unpack (expected 2)
+Traceback (most recent call last):
+  File "d:\Group\HyOCR\20260130\main.py", line 427, in <module>
+    main()
+    ~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 410, in main
+    test_hc_5n4()
+    ~~~~~~~~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 372, in test_hc_5n4
+    state = converge_full(model, z_guess, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 341, in converge_full
+    state = converge_ttx_yfl(model, z, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 312, in converge_ttx_yfl
+    next_state = update_Ttxyfl(model, z, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 294, in update_Ttxyfl
+    T_new, t_new = model.Tt_hc(z,state)
+    ^^^^^^^^^^^^
+ValueError: too many values to unpack (expected 2)
+2026-03-24 21:28:00 - INFO - 程序结束
+2026-03-24 21:31:08 - INFO - 程序开始运行
+2026-03-24 21:31:08 - INFO - 测试 hc_5n4
+2026-03-24 21:31:08 - INFO - [outer 1/10000] start
+2026-03-24 21:32:07 - ERROR - 程序出错: ('T', 't')
+Traceback (most recent call last):
+  File "d:\Group\HyOCR\20260130\main.py", line 427, in <module>
+    main()
+    ~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 410, in main
+    test_hc_5n4()
+    ~~~~~~~~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 372, in test_hc_5n4
+    state = converge_full(model, z_guess, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 341, in converge_full
+    state = converge_ttx_yfl(model, z, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 312, in converge_ttx_yfl
+    next_state = update_Ttxyfl(model, z, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 294, in update_Ttxyfl
+    T_new, t_new = model.Tt_hc(z,state)
+                   ~~~~~~~~~~~^^^^^^^^^
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1728, in Tt_hc
+    return relaxed_state['T', 't']
+           ~~~~~~~~~~~~~^^^^^^^^^^
+KeyError: ('T', 't')
+2026-03-24 21:32:07 - INFO - 程序结束
+2026-03-24 21:38:38 - INFO - 程序开始运行
+2026-03-24 21:38:38 - INFO - 测试 hc_5n4
+2026-03-24 21:38:38 - INFO - [outer 1/10000] start
+2026-03-24 21:39:38 - ERROR - 程序出错: HCFurnaceModel.xy_hc.<locals>.update_fn() missing 1 required positional argument: 'state'
+Traceback (most recent call last):
+  File "d:\Group\HyOCR\20260130\main.py", line 427, in <module>
+    main()
+    ~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 410, in main
+    test_hc_5n4()
+    ~~~~~~~~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 372, in test_hc_5n4
+    state = converge_full(model, z_guess, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 341, in converge_full
+    state = converge_ttx_yfl(model, z, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 312, in converge_ttx_yfl
+    next_state = update_Ttxyfl(model, z, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 295, in update_Ttxyfl
+    x_new, y_new = model.xy_hc(z,state)
+                   ~~~~~~~~~~~^^^^^^^^^
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1841, in xy_hc
+    relaxed_state = self._relax_solver(z, state, update_fn, fields=['x', 'y'])
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1583, in _relax_solver
+    new_state = update_fn(state)
+TypeError: HCFurnaceModel.xy_hc.<locals>.update_fn() missing 1 required positional argument: 'state'
+2026-03-24 21:39:38 - INFO - 程序结束
+2026-03-24 21:41:43 - INFO - 程序开始运行
+2026-03-24 21:41:43 - INFO - 测试 hc_5n4
+2026-03-24 21:41:43 - INFO - [outer 1/10000] start
+2026-03-24 21:43:17 - INFO - [inner 1/100] err_T=8.908e-04, err_t=9.050e-04, err_x=5.585e-04, err_y=8.738e-04, err_fl=7.702e-04
+2026-03-24 21:43:17 - INFO - inner loop converged at iter 1
+2026-03-24 21:43:19 - INFO - [outer 1] err_w=6.994e-04, err_fs=9.289e-04, err_p=4.705e-02, err_rhob=1.209e-02
+2026-03-24 21:43:19 - INFO - [outer 2/10000] start
+2026-03-24 21:44:26 - INFO - [inner 1/100] err_T=5.563e-04, err_t=4.701e-04, err_x=4.957e-04, err_y=7.539e-04, err_fl=6.662e-04
+2026-03-24 21:44:26 - INFO - inner loop converged at iter 1
+2026-03-24 21:44:28 - INFO - [outer 2] err_w=8.073e-04, err_fs=4.377e-04, err_p=3.909e-02, err_rhob=4.100e-03
+2026-03-24 21:44:28 - INFO - [outer 3/10000] start
+2026-03-24 21:45:05 - INFO - [inner 1/100] err_T=4.225e-04, err_t=4.147e-04, err_x=6.443e-04, err_y=9.416e-04, err_fl=9.333e-04
+2026-03-24 21:45:05 - INFO - inner loop converged at iter 1
+2026-03-24 21:45:07 - INFO - [outer 3] err_w=5.062e-04, err_fs=6.419e-04, err_p=1.193e-02, err_rhob=1.458e-03
+2026-03-24 21:45:07 - INFO - [outer 4/10000] start
+2026-03-24 21:45:35 - INFO - [inner 1/100] err_T=9.323e-04, err_t=8.270e-04, err_x=7.235e-04, err_y=1.179e-03, err_fl=5.360e-04
+2026-03-24 21:45:44 - INFO - inner loop converged at iter 2
+2026-03-24 21:45:45 - INFO - [outer 4] err_w=5.927e-04, err_fs=7.968e-04, err_p=2.369e-03, err_rhob=5.439e-04
+2026-03-24 21:45:45 - INFO - [outer 5/10000] start
+2026-03-24 21:45:59 - INFO - [inner 1/100] err_T=4.960e-04, err_t=4.937e-04, err_x=6.178e-04, err_y=9.988e-04, err_fl=6.707e-04
+2026-03-24 21:45:59 - INFO - inner loop converged at iter 1
+2026-03-24 21:46:00 - INFO - [outer 5] err_w=8.163e-04, err_fs=4.514e-04, err_p=9.866e-04, err_rhob=2.328e-04
+2026-03-24 21:46:00 - INFO - outer loop converged at iter 5
+2026-03-24 21:47:19 - INFO - test_hc_5n4 done
+2026-03-24 21:47:19 - INFO - 程序结束
