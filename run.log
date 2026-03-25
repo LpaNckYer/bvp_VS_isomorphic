@@ -548,3 +548,220 @@ TypeError: HCFurnaceModel.xy_hc.<locals>.update_fn() missing 1 required position
 2026-03-24 21:46:00 - INFO - outer loop converged at iter 5
 2026-03-24 21:47:19 - INFO - test_hc_5n4 done
 2026-03-24 21:47:19 - INFO - 程序结束
+2026-03-25 17:27:29 - INFO - 程序开始运行
+2026-03-25 17:27:29 - INFO - 测试 hc_5n4
+2026-03-25 17:27:29 - INFO - [outer 1/10000] start
+2026-03-25 17:29:04 - INFO - [inner 1/100] err_T=8.908e-04, err_t=9.050e-04, err_x=5.585e-04, err_y=8.738e-04, err_fl=7.702e-04
+2026-03-25 17:29:04 - INFO - inner loop converged at iter 1
+2026-03-25 17:29:04 - ERROR - 程序出错: index 1999 is out of bounds for axis 0 with size 1999
+Traceback (most recent call last):
+  File "d:\Group\HyOCR\20260130\main.py", line 427, in <module>
+    main()
+    ~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 410, in main
+    test_hc_5n4()
+    ~~~~~~~~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 372, in test_hc_5n4
+    state = converge_full(model, z_guess, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 343, in converge_full
+    next_state = update_wfsprhob(model, z, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 302, in update_wfsprhob
+    w_new = model.w_hc(z,state)
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1916, in w_hc
+    relaxed_state = self._relax_solver(z, state, update_fn, fields=['w'])
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1583, in _relax_solver
+    new_state = update_fn(z, state)
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1901, in update_fn
+    A_w,a_w = setAa_linear_n(N, z_diff, win, a_list, b_list)
+              ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "d:\Group\HyOCR\20260130\simple_matrix.py", line 22, in setAa_linear_n
+    A[i,i] = - a_list[i] * np.exp(a_list[i]*z_list[i])
+               ~~~~~~^^^
+IndexError: index 1999 is out of bounds for axis 0 with size 1999
+2026-03-25 17:29:04 - INFO - 程序结束
+2026-03-25 17:32:14 - INFO - 程序开始运行
+2026-03-25 17:32:14 - INFO - 测试 hc_5n4
+2026-03-25 17:32:14 - INFO - [outer 1/10000] start
+2026-03-25 17:33:52 - INFO - [inner 1/100] err_T=8.908e-04, err_t=9.050e-04, err_x=5.585e-04, err_y=8.738e-04, err_fl=7.702e-04
+2026-03-25 17:33:52 - INFO - inner loop converged at iter 1
+2026-03-25 17:33:54 - INFO - [outer 1] err_w=6.250e-04, err_fs=9.225e-04, err_p=4.705e-02, err_rhob=1.220e-02
+2026-03-25 17:33:54 - INFO - [outer 2/10000] start
+2026-03-25 17:35:02 - INFO - [inner 1/100] err_T=5.795e-04, err_t=5.560e-04, err_x=4.883e-04, err_y=7.462e-04, err_fl=6.699e-04
+2026-03-25 17:35:02 - INFO - inner loop converged at iter 1
+2026-03-25 17:35:04 - INFO - [outer 2] err_w=8.591e-04, err_fs=4.277e-04, err_p=3.858e-02, err_rhob=4.292e-03
+2026-03-25 17:35:04 - INFO - [outer 3/10000] start
+2026-03-25 17:35:41 - INFO - [inner 1/100] err_T=4.208e-04, err_t=3.997e-04, err_x=6.070e-04, err_y=9.360e-04, err_fl=8.403e-04
+2026-03-25 17:35:41 - INFO - inner loop converged at iter 1
+2026-03-25 17:35:43 - INFO - [outer 3] err_w=5.515e-04, err_fs=6.668e-04, err_p=1.231e-02, err_rhob=1.540e-03
+2026-03-25 17:35:43 - INFO - [outer 4/10000] start
+2026-03-25 17:36:12 - INFO - [inner 1/100] err_T=7.776e-04, err_t=7.709e-04, err_x=7.127e-04, err_y=1.161e-03, err_fl=5.478e-04
+2026-03-25 17:36:21 - INFO - inner loop converged at iter 2
+2026-03-25 17:36:22 - INFO - [outer 4] err_w=6.574e-04, err_fs=8.422e-04, err_p=2.752e-03, err_rhob=6.029e-04
+2026-03-25 17:36:22 - INFO - [outer 5/10000] start
+2026-03-25 17:36:36 - INFO - [inner 1/100] err_T=5.531e-04, err_t=5.509e-04, err_x=6.445e-04, err_y=1.037e-03, err_fl=8.491e-04
+2026-03-25 17:36:44 - INFO - inner loop converged at iter 2
+2026-03-25 17:36:45 - INFO - [outer 5] err_w=4.543e-04, err_fs=3.888e-04, err_p=5.528e-04, err_rhob=1.996e-04
+2026-03-25 17:36:45 - INFO - outer loop converged at iter 5
+2026-03-25 17:36:53 - INFO - test_hc_5n4 done
+2026-03-25 17:36:53 - INFO - 程序结束
+2026-03-25 17:36:54 - INFO - 程序开始运行
+2026-03-25 17:36:54 - INFO - 测试 hc_5n4
+2026-03-25 17:36:54 - INFO - [outer 1/10000] start
+2026-03-25 17:38:29 - INFO - [inner 1/100] err_T=8.908e-04, err_t=9.050e-04, err_x=5.585e-04, err_y=8.738e-04, err_fl=7.702e-04
+2026-03-25 17:38:29 - INFO - inner loop converged at iter 1
+2026-03-25 17:38:31 - INFO - [outer 1] err_w=6.250e-04, err_fs=9.225e-04, err_p=4.705e-02, err_rhob=1.220e-02
+2026-03-25 17:38:31 - INFO - [outer 2/10000] start
+2026-03-25 17:39:38 - INFO - [inner 1/100] err_T=5.795e-04, err_t=5.560e-04, err_x=4.883e-04, err_y=7.462e-04, err_fl=6.699e-04
+2026-03-25 17:39:38 - INFO - inner loop converged at iter 1
+2026-03-25 17:39:40 - INFO - [outer 2] err_w=8.591e-04, err_fs=4.277e-04, err_p=3.858e-02, err_rhob=4.292e-03
+2026-03-25 17:39:40 - INFO - [outer 3/10000] start
+2026-03-25 17:40:17 - INFO - [inner 1/100] err_T=4.208e-04, err_t=3.997e-04, err_x=6.070e-04, err_y=9.360e-04, err_fl=8.403e-04
+2026-03-25 17:40:17 - INFO - inner loop converged at iter 1
+2026-03-25 17:40:19 - INFO - [outer 3] err_w=5.515e-04, err_fs=6.668e-04, err_p=1.231e-02, err_rhob=1.540e-03
+2026-03-25 17:40:19 - INFO - [outer 4/10000] start
+2026-03-25 17:40:48 - INFO - [inner 1/100] err_T=7.776e-04, err_t=7.709e-04, err_x=7.127e-04, err_y=1.161e-03, err_fl=5.478e-04
+2026-03-25 17:40:56 - INFO - inner loop converged at iter 2
+2026-03-25 17:40:57 - INFO - [outer 4] err_w=6.574e-04, err_fs=8.422e-04, err_p=2.752e-03, err_rhob=6.029e-04
+2026-03-25 17:40:57 - INFO - [outer 5/10000] start
+2026-03-25 17:41:12 - INFO - [inner 1/100] err_T=5.531e-04, err_t=5.509e-04, err_x=6.445e-04, err_y=1.037e-03, err_fl=8.491e-04
+2026-03-25 17:41:20 - INFO - inner loop converged at iter 2
+2026-03-25 17:41:21 - INFO - [outer 5] err_w=4.543e-04, err_fs=3.888e-04, err_p=5.528e-04, err_rhob=1.996e-04
+2026-03-25 17:41:21 - INFO - outer loop converged at iter 5
+2026-03-25 17:41:28 - INFO - test_hc_5n4 done
+2026-03-25 17:41:28 - INFO - 程序结束
+2026-03-25 18:00:48 - INFO - 程序开始运行
+2026-03-25 18:00:48 - INFO - 测试 hc_5n4
+2026-03-25 18:00:48 - INFO - [outer 1/10000] start
+2026-03-25 18:00:52 - ERROR - 程序出错: index 2000 is out of bounds for axis 0 with size 2000
+Traceback (most recent call last):
+  File "d:\Group\HyOCR\20260130\main.py", line 427, in <module>
+    main()
+    ~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 410, in main
+    test_hc_5n4()
+    ~~~~~~~~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 372, in test_hc_5n4
+    state = converge_full(model, z_guess, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 341, in converge_full
+    state = converge_ttx_yfl(model, z, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 312, in converge_ttx_yfl
+    next_state = update_Ttxyfl(model, z, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 294, in update_Ttxyfl
+    T_new, t_new = model.Tt_hc(z,state)
+                   ~~~~~~~~~~~^^^^^^^^^
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1697, in Tt_hc
+    relaxed_state = self._relax_solver(z, state, update_fn, fields=['T', 't'])
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1583, in _relax_solver
+    new_state = update_fn(z, state)
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1665, in update_fn
+    Q1_bkp = Q1[bkp]
+             ~~^^^^^
+IndexError: index 2000 is out of bounds for axis 0 with size 2000
+2026-03-25 18:00:52 - INFO - 程序结束
+2026-03-25 18:03:02 - INFO - 程序开始运行
+2026-03-25 18:03:02 - INFO - 测试 hc_5n4
+2026-03-25 18:03:02 - INFO - [outer 1/10000] start
+2026-03-25 18:03:07 - ERROR - 程序出错: index 1999 is out of bounds for axis 0 with size 1999
+Traceback (most recent call last):
+  File "d:\Group\HyOCR\20260130\main.py", line 427, in <module>
+    main()
+    ~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 410, in main
+    test_hc_5n4()
+    ~~~~~~~~~~~^^
+  File "d:\Group\HyOCR\20260130\main.py", line 372, in test_hc_5n4
+    state = converge_full(model, z_guess, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 341, in converge_full
+    state = converge_ttx_yfl(model, z, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 312, in converge_ttx_yfl
+    next_state = update_Ttxyfl(model, z, state)
+  File "d:\Group\HyOCR\20260130\main.py", line 294, in update_Ttxyfl
+    T_new, t_new = model.Tt_hc(z,state)
+                   ~~~~~~~~~~~^^^^^^^^^
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1697, in Tt_hc
+    relaxed_state = self._relax_solver(z, state, update_fn, fields=['T', 't'])
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1583, in _relax_solver
+    new_state = update_fn(z, state)
+  File "d:\Group\HyOCR\20260130\furnace_model.py", line 1673, in update_fn
+    Q1[bkp] = Q1_bkp
+    ~~^^^^^
+IndexError: index 1999 is out of bounds for axis 0 with size 1999
+2026-03-25 18:03:07 - INFO - 程序结束
+2026-03-25 18:05:02 - INFO - 程序开始运行
+2026-03-25 18:05:02 - INFO - 测试 hc_5n4
+2026-03-25 18:05:02 - INFO - [outer 1/10000] start
+2026-03-25 18:06:50 - INFO - [inner 1/100] err_T=7.774e-04, err_t=7.758e-04, err_x=6.461e-05, err_y=1.114e-03, err_fl=6.380e-04
+2026-03-25 18:07:58 - INFO - inner loop converged at iter 3
+2026-03-25 18:08:01 - INFO - [outer 1] err_w=6.387e-04, err_fs=5.771e-04, err_p=1.880e-01, err_rhob=3.998e-02
+2026-03-25 18:08:01 - INFO - [outer 2/10000] start
+2026-03-25 18:09:04 - INFO - [inner 1/100] err_T=6.645e-04, err_t=6.746e-04, err_x=1.200e-04, err_y=1.648e-03, err_fl=7.005e-04
+2026-03-25 18:09:56 - INFO - inner loop converged at iter 4
+2026-03-25 18:09:58 - INFO - [outer 2] err_w=5.153e-04, err_fs=5.007e-04, err_p=1.190e-02, err_rhob=1.088e-02
+2026-03-25 18:09:58 - INFO - [outer 3/10000] start
+2026-03-25 18:10:38 - INFO - [inner 1/100] err_T=6.218e-04, err_t=6.028e-04, err_x=1.278e-04, err_y=1.824e-03, err_fl=4.383e-04
+2026-03-25 18:11:18 - INFO - inner loop converged at iter 4
+2026-03-25 18:11:19 - INFO - [outer 3] err_w=4.566e-04, err_fs=5.713e-04, err_p=3.970e-04, err_rhob=1.155e-03
+2026-03-25 18:11:19 - INFO - [outer 4/10000] start
+2026-03-25 18:11:37 - INFO - [inner 1/100] err_T=8.475e-04, err_t=8.313e-04, err_x=7.536e-05, err_y=1.073e-03, err_fl=5.993e-04
+2026-03-25 18:12:03 - INFO - inner loop converged at iter 3
+2026-03-25 18:12:03 - INFO - [outer 4] err_w=7.174e-05, err_fs=6.672e-04, err_p=1.316e-04, err_rhob=7.854e-05
+2026-03-25 18:12:03 - INFO - outer loop converged at iter 4
+2026-03-25 18:53:22 - INFO - test_hc_5n4 done
+2026-03-25 18:53:22 - INFO - 程序结束
+2026-03-25 19:04:04 - INFO - 程序开始运行
+2026-03-25 19:04:04 - INFO - 测试 hc_5n4
+2026-03-25 19:04:04 - INFO - [outer 1/10000] start
+2026-03-25 19:16:41 - INFO - [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=5.397e-04, err_y=7.942e-04, err_fl=9.122e-04
+2026-03-25 19:16:41 - INFO - inner loop converged at iter 1
+2026-03-25 19:16:44 - INFO - [outer 1] err_w=6.606e-04, err_fs=3.336e-04, err_p=7.447e-02, err_rhob=2.214e-02
+2026-03-25 19:16:44 - INFO - [outer 2/10000] start
+2026-03-25 19:29:17 - INFO - [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=4.823e-04, err_y=8.280e-04, err_fl=6.985e-04
+2026-03-25 19:29:17 - INFO - inner loop converged at iter 1
+2026-03-25 19:29:19 - INFO - [outer 2] err_w=5.795e-04, err_fs=9.476e-04, err_p=7.630e-03, err_rhob=5.316e-03
+2026-03-25 19:29:19 - INFO - [outer 3/10000] start
+2026-03-25 19:41:14 - INFO - [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=7.560e-04, err_y=1.202e-03, err_fl=6.064e-04
+2026-03-25 19:52:58 - INFO - inner loop converged at iter 2
+2026-03-25 19:53:00 - INFO - [outer 3] err_w=7.802e-04, err_fs=4.024e-04, err_p=6.181e-03, err_rhob=6.506e-03
+2026-03-25 19:53:00 - INFO - [outer 4/10000] start
+2026-03-25 20:04:49 - INFO - [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=5.157e-04, err_y=1.066e-03, err_fl=4.139e-04
+2026-03-25 20:16:32 - INFO - inner loop converged at iter 2
+2026-03-25 20:16:34 - INFO - [outer 4] err_w=4.536e-04, err_fs=5.571e-04, err_p=6.543e-03, err_rhob=1.969e-03
+2026-03-25 20:16:34 - INFO - [outer 5/10000] start
+2026-03-25 20:28:20 - INFO - [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=3.883e-04, err_y=8.799e-04, err_fl=5.567e-04
+2026-03-25 20:28:20 - INFO - inner loop converged at iter 1
+2026-03-25 20:28:21 - INFO - [outer 5] err_w=7.667e-04, err_fs=6.195e-04, err_p=3.420e-03, err_rhob=1.054e-03
+2026-03-25 20:28:21 - INFO - [outer 6/10000] start
+2026-03-25 20:40:04 - INFO - [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=8.351e-04, err_y=6.685e-04, err_fl=5.131e-04
+2026-03-25 20:40:04 - INFO - inner loop converged at iter 1
+2026-03-25 20:40:06 - INFO - [outer 6] err_w=5.531e-04, err_fs=5.447e-04, err_p=4.650e-03, err_rhob=1.969e-03
+2026-03-25 20:40:06 - INFO - [outer 7/10000] start
+2026-03-25 20:51:50 - INFO - [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=4.559e-04, err_y=1.024e-03, err_fl=7.444e-04
+2026-03-25 21:15:14 - INFO - inner loop converged at iter 3
+2026-03-25 21:15:15 - INFO - [outer 7] err_w=6.983e-04, err_fs=5.939e-04, err_p=5.600e-03, err_rhob=7.807e-04
+2026-03-25 21:15:15 - INFO - [outer 8/10000] start
+2026-03-25 21:26:58 - INFO - [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=7.776e-04, err_y=9.292e-04, err_fl=5.780e-04
+2026-03-25 21:26:58 - INFO - inner loop converged at iter 1
+2026-03-25 21:27:00 - INFO - [outer 8] err_w=7.546e-04, err_fs=4.741e-04, err_p=6.505e-03, err_rhob=1.763e-03
+2026-03-25 21:27:00 - INFO - [outer 9/10000] start
+2026-03-25 21:38:42 - INFO - [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=7.074e-04, err_y=1.113e-03, err_fl=7.988e-04
+2026-03-25 21:50:20 - INFO - inner loop converged at iter 2
+2026-03-25 21:50:21 - INFO - [outer 9] err_w=7.291e-04, err_fs=7.059e-04, err_p=6.809e-03, err_rhob=1.284e-03
+2026-03-25 21:50:21 - INFO - [outer 10/10000] start
+2026-03-25 22:02:04 - INFO - [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=6.567e-04, err_y=9.606e-04, err_fl=7.699e-04
+2026-03-25 22:02:04 - INFO - inner loop converged at iter 1
+2026-03-25 22:02:05 - INFO - [outer 10] err_w=7.026e-04, err_fs=7.603e-04, err_p=6.202e-03, err_rhob=1.496e-03
+2026-03-25 22:02:05 - INFO - [outer 11/10000] start
+2026-03-25 22:13:50 - INFO - [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=5.956e-04, err_y=9.304e-04, err_fl=7.896e-04
+2026-03-25 22:13:50 - INFO - inner loop converged at iter 1
+2026-03-25 22:13:51 - INFO - [outer 11] err_w=5.815e-04, err_fs=5.609e-04, err_p=5.071e-03, err_rhob=1.071e-03
+2026-03-25 22:13:51 - INFO - [outer 12/10000] start
+2026-03-25 22:25:34 - INFO - [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=7.866e-04, err_y=1.093e-03, err_fl=5.821e-04
+2026-03-25 22:37:11 - INFO - inner loop converged at iter 2
+2026-03-25 22:37:12 - INFO - [outer 12] err_w=4.859e-04, err_fs=4.678e-04, err_p=4.114e-03, err_rhob=9.052e-04
+2026-03-25 22:37:12 - INFO - [outer 13/10000] start
+2026-03-25 22:48:50 - INFO - [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=3.297e-04, err_y=9.642e-04, err_fl=7.603e-04
+2026-03-25 22:48:50 - INFO - inner loop converged at iter 1
+2026-03-25 22:48:51 - INFO - [outer 13] err_w=8.953e-04, err_fs=3.913e-04, err_p=5.539e-04, err_rhob=1.619e-04
+2026-03-25 22:48:51 - INFO - outer loop converged at iter 13
+2026-03-25 22:52:18 - INFO - test_hc_5n4 done
+2026-03-25 22:52:18 - INFO - 程序结束

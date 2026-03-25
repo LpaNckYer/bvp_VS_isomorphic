@@ -1661,66 +1661,36 @@ class HCFurnaceModel(FurnaceModel):
             Q1 = Az*q4 + Az*Cs*t*q5                 # solid
             Q2 = 22.4*Az*C*q2*T + pai*Dz*self.params.U*(T-self.params.T_we) # gas       [kcal / m * hr]
 
-            # df = pd.DataFrame(np.vstack((z, [KA, G1, G2, Q1, Q2])).T, columns=['z', 'KA', 'G1', 'G2', 'Q1', 'Q2'])
-            # df.to_csv('Tt_para_1.csv', index=False)
+            bkp = min(len(z[t<1200]), len(z)-2)
+            Q1_bkp = Q1[bkp]
+            Q2_bkp = Q2[bkp]
 
-            z_low, z_high = z[t<1200], z[t>=1200]
-            G1_low, G1_high = G1[t<1200], G1[t>=1200]
-            G2_low, G2_high = G2[t<1200], G2[t>=1200]
-            KA_low, KA_high = KA[t<1200], KA[t>=1200]
-            Q1_low, Q1_high = Q1[t<1200], Q1[t>=1200]
-            Q2_low, Q2_high = Q2[t<1200], Q2[t>=1200]
-            G1_low = (G1_low[1:] + G1_low[:-1]) / 2 
-            G2_low = (G2_low[1:] + G2_low[:-1]) / 2
-            KA_low = (KA_low[1:] + KA_low[:-1]) / 2
-            Q1_low = (Q1_low[1:] + Q1_low[:-1]) / 2
-            Q2_low = (Q2_low[1:] + Q2_low[:-1]) / 2
-            G1_high = (G1_high[1:] + G1_high[:-1]) / 2 
-            G2_high = (G2_high[1:] + G2_high[:-1]) / 2
-            KA_high = (KA_high[1:] + KA_high[:-1]) / 2
-            Q1_high = (Q1_high[1:] + Q1_high[:-1]) / 2
-            Q2_high = (Q2_high[1:] + Q2_high[:-1]) / 2
+            G1 = (G1[1:] + G1[:-1]) / 2 
+            G2 = (G2[1:] + G2[:-1]) / 2
+            KA = (KA[1:] + KA[:-1]) / 2
+            Q1 = (Q1[1:] + Q1[:-1]) / 2
+            Q2 = (Q2[1:] + Q2[:-1]) / 2
+            Q1[bkp] = Q1_bkp
+            Q2[bkp] = Q2_bkp
 
-            z_diff_low = np.diff(z_low)
-            N_low = len(z_diff_low)
-            T1in_low = self.params.t_in
-            T2in_low = T[N_low]
-            t_low, T_low = t[t<1200], T[t<1200]
-            A_low,a_low = setAa_n(N_low, z_diff_low, KA_low, G1_low, G2_low, T1in_low, T2in_low, Q1_low, Q2_low)
-            X_low = solve(A_low, a_low)
-            t_low_new = X_low[0:N_low+1].ravel()
-            T_low_new = X_low[(N_low+1):(2*N_low+2)].ravel()
+            z_diff = np.diff(z)
+            N = len(z_diff)
+            tin = self.params.t_in
+            Tin = self.params.T_in
+            A_tT,a_tT = setAa_n(N, z_diff, KA, G1, G2, Tin, tin, Q1, Q2)
+            X_tT = solve(A_tT, a_tT)
+            t_new = X_tT[0:N+1].ravel()
+            T_new = X_tT[(N+1):(2*N+2)].ravel()
             count = 0
             limit = 100
-            while(norm(T_low_new-T_low)/norm(T_low) >= 1e-3 or norm(t_low_new-t_low)/norm(t_low) >= 1e-3) and (count < limit):
+            while(norm(T_new-T)/norm(T) >= 1e-3 or norm(t_new-t)/norm(t) >= 1e-3) and (count < limit):
                 count += 1
-                t_low, T_low = t_low_new, T_low_new
-                A_low,a_low = setAa_n(N_low, z_diff_low, KA_low, G1_low, G2_low, T1in_low, T2in_low, Q1_low, Q2_low)
-                X_low = solve(A_low, a_low)
-                t_low_new = X_low[0:N_low+1].ravel()
-                T_low_new = X_low[(N_low+1):(2*N_low+2)].ravel()
+                t, T = t_new, T_new
+                A_tT,a_tT = setAa_n(N, z_diff, KA, G1, G2, tin, Tin, Q1, Q2)
+                X_tT = solve(A_tT, a_tT)
+                t_new = X_tT[0:N+1].ravel()
+                T_new = X_tT[(N+1):(2*N+2)].ravel()
 
-            z_diff_high = np.diff(z_high)
-            N_high = len(z_diff_high)
-            T1in_high = t[N_low+1]
-            T2in_high = self.params.T_in
-            t_high, T_high = t[t>=1200], T[t>=1200]
-            A_high,a_high = setAa_n(N_high, z_diff_high, KA_high, G1_high, G2_high, T1in_high, T2in_high, Q1_high, Q2_high)
-            X_high = solve(A_high, a_high)
-            t_high_new = X_high[0:N_high+1].ravel()
-            T_high_new = X_high[(N_high+1):(2*N_high+2)].ravel()
-            count = 0
-            limit = 100
-            while(norm(T_high_new-T_high)/norm(T_high) >= 1e-3 or norm(t_high_new-t_high)/norm(t_high) >= 1e-3) and (count < limit):
-                count += 1
-                t_high, T_high = t_high_new, T_high_new
-                A_high,a_high = setAa_n(N_high, z_diff_high, KA_high, G1_high, G2_high, T1in_high, T2in_high, Q1_high, Q2_high)
-                X_high = solve(A_high, a_high)
-                t_high_new = X_high[0:N_high+1].ravel()
-                T_high_new = X_high[(N_high+1):(2*N_high+2)].ravel()
-
-            T_new = np.concatenate((T_low_new, T_high_new))
-            t_new = np.concatenate((t_low_new, t_high_new))
             current_state.update({'T': T_new, 't': t_new})
             return current_state
 
@@ -1776,65 +1746,38 @@ class HCFurnaceModel(FurnaceModel):
             Q1 = Az*((K1-1)/(1+K1)*kappa_1*y + (x-2)*R2 + x*R4 + (x-1)*R6 + R7) * (1+K1)/K1
             Q2 = Az*(-(K1-1)/(1+K1)*kappa_1*y + (y+1)*R2 + (y-1)*R4 + y*R6 - R7) * (1+K1)/K1
 
-            z_low, z_high = z[t<1200], z[t>=1200]
-            G1_low, G1_high = G1[t<1200], G1[t>=1200]
-            G2_low, G2_high = G2[t<1200], G2[t>=1200]
-            KA_low, KA_high = KA[t<1200], KA[t>=1200]
-            Q1_low, Q1_high = Q1[t<1200], Q1[t>=1200]
-            Q2_low, Q2_high = Q2[t<1200], Q2[t>=1200]
-            G1_low = (G1_low[1:] + G1_low[:-1]) / 2 
-            G2_low = (G2_low[1:] + G2_low[:-1]) / 2
-            KA_low = (KA_low[1:] + KA_low[:-1]) / 2
-            Q1_low = (Q1_low[1:] + Q1_low[:-1]) / 2
-            Q2_low = (Q2_low[1:] + Q2_low[:-1]) / 2
-            G1_high = (G1_high[1:] + G1_high[:-1]) / 2 
-            G2_high = (G2_high[1:] + G2_high[:-1]) / 2
-            KA_high = (KA_high[1:] + KA_high[:-1]) / 2
-            Q1_high = (Q1_high[1:] + Q1_high[:-1]) / 2
-            Q2_high = (Q2_high[1:] + Q2_high[:-1]) / 2   
+            bkp = min(len(z[t<1200]), len(z)-2)
+            Q1_bkp = Q1[bkp]
+            Q2_bkp = Q2[bkp]
 
-            z_diff_low = np.diff(z_low)
-            N_low = len(z_diff_low)
-            xin_low = x[N_low]
-            yin_low = y[N_low]
-            x_low, y_low = x[t<1200], y[t<1200]
-            A_low,a_low = setAa_s(N_low, z_diff_low, KA_low, G1_low, G2_low, xin_low, yin_low, Q1_low, Q2_low)
-            X_low = solve(A_low, a_low)
-            x_low_new = X_low[0:N_low+1].ravel()
-            y_low_new = X_low[(N_low+1):(2*N_low+2)].ravel()
-            count_low = 0
+            G1 = (G1[1:] + G1[:-1]) / 2 
+            G2 = (G2[1:] + G2[:-1]) / 2
+            KA = (KA[1:] + KA[:-1]) / 2
+            Q1 = (Q1[1:] + Q1[:-1]) / 2
+            Q2 = (Q2[1:] + Q2[:-1]) / 2
+            Q1[bkp] = Q1_bkp
+            Q2[bkp] = Q2_bkp
+
+            z_diff = np.diff(z)
+            N = len(z_diff)
+            xin = self.params.x_in
+            yin = self.params.y_in
+     
+            A_xy,a_xy = setAa_s(N, z_diff, KA, G1, G2, xin, yin, Q1, Q2)
+            X = solve(A_xy, a_xy)
+            x_new = X[0:N+1].ravel()
+            y_new = X[(N+1):(2*N+2)].ravel()
+            count = 0
             limit = 100
-            while(norm(x_low_new-x_low) >= 1e-3*N_low**0.5 or norm(y_low_new-y_low) >= 1e-3*N_low**0.5) and (count_low < limit):
-                count_low += 1
-                # print("xy_hc, count_low = ", count_low)
-                x_low, y_low = x_low_new, y_low_new
-                A_low,a_low = setAa_s(N_low, z_diff_low, KA_low, G1_low, G2_low, xin_low, yin_low, Q1_low, Q2_low)
-                X_low = solve(A_low, a_low)
-                x_low_new = X_low[0:N_low+1].ravel()
-                y_low_new = X_low[(N_low+1):(2*N_low+2)].ravel()
-
-            z_diff_high = np.diff(z_high)
-            N_high = len(z_diff_high)
-            xin_high = self.params.x_in
-            yin_high = self.params.y_in
-            x_high, y_high = x[t>=1200], y[t>=1200]
-            A_high,a_high = setAa_s(N_high, z_diff_high, KA_high, G1_high, G2_high, xin_high, yin_high, Q1_high, Q2_high)
-            X_high = solve(A_high, a_high)
-            x_high_new = X_high[0:N_high+1].ravel()
-            y_high_new = X_high[(N_high+1):(2*N_high+2)].ravel()
-            count_high = 0
-            limit = 100
-            while(norm(x_high_new-x_high)/norm(x_high) >= 1e-3*N_high**0.5 or norm(y_high_new-y_high) >= 1e-3*N_high**0.5) and (count_high < limit):
-                count_high += 1
-                # print("xy_hc, count_high = ", count_high)
-                x_high, y_high = x_high_new, y_high_new
-                A_high,a_high = setAa_s(N_high, z_diff_high, KA_high, G1_high, G2_high, xin_high, yin_high, Q1_high, Q2_high)
-                X_high = solve(A_high, a_high)
-                x_high_new = X_high[0:N_high+1].ravel()
-                y_high_new = X_high[(N_high+1):(2*N_high+2)].ravel()
-
-            x_new = np.concatenate((x_low_new, x_high_new))
-            y_new = np.concatenate((y_low_new, y_high_new))
+            while(norm(x_new-x)/norm(x) >= 1e-3*N**0.5 or norm(y_new-y)/norm(y) >= 1e-3*N**0.5) and (count < limit):
+                count += 1
+                # print("xy_hc, count = ", count)
+                x, y = x_new, y_new
+                A_xy,a_xy = setAa_s(N, z_diff, KA, G1, G2, xin, yin, Q1, Q2)
+                X = solve(A_xy, a_xy)
+                x_new = X[0:N+1].ravel()
+                y_new = X[(N+1):(2*N+2)].ravel()
+     
             state.update({'x': x_new, 'y': y_new})
             return state
 
@@ -1885,48 +1828,30 @@ class HCFurnaceModel(FurnaceModel):
             a_list[R5<=0] = 0
             b_list[R5<=0] = 22.4*Az[R5<=0]*(w[R5<=0]*R2[R5<=0] + w[R5<=0]*R4[R5<=0] + (w[R5<=0]-1)*R6[R5<=0] - R7[R5<=0]) / F[R5<=0]
             
-            a_list_low, a_list_high = a_list[t<1200], a_list[t>=1200]
-            b_list_low, b_list_high = b_list[t<1200], b_list[t>=1200]
+            bkp = min(len(z[t<1200]), len(z)-2)
+            a_bkp = a_list[bkp]
+            b_bkp = b_list[bkp]
 
-            a_list_low = (a_list_low[1:] + a_list_low[:-1]) / 2
-            b_list_low = (b_list_low[1:] + b_list_low[:-1]) / 2
-            a_list_high = (a_list_high[1:] + a_list_high[:-1]) / 2
-            b_list_high = (b_list_high[1:] + b_list_high[:-1]) / 2
+            a_list = (a_list[1:] + a_list[:-1]) / 2
+            b_list = (b_list[1:] + b_list[:-1]) / 2
+            a_list[bkp] = a_bkp
+            b_list[bkp] = b_bkp
 
-            z_low, z_high = z[t<1200], z[t>=1200]
-            w_low, w_high = w[t<1200], w[t>=1200]
-
-            z_diff_low = np.diff(z_low)
-            N_low = len(z_diff_low)
-            win_low = w[N_low]
-            A_low,a_low = setAa_linear_n(N_low, z_diff_low, win_low, a_list_low, b_list_low)
-            X_low = solve(A_low, a_low)
-            w_low_new = X_low.ravel()
-            count_low = 0
+            z_diff = np.diff(z)
+            N = len(z_diff)
+            win = self.params.w_in
+            A_w,a_w = setAa_linear_n(N, z_diff, win, a_list, b_list)
+            X_low = solve(A_w, a_w)
+            w_new = X_low.ravel()
+            count = 0
             limit = 100
-            while(norm(w_low_new-w_low) >= 1e-4*N_low**0.5) and (count_low < limit):
-                count_low += 1
-                w_low = w_low_new
-                A_low,a_low = setAa_linear_n(N_low, z_diff_low, win_low, a_list_low, b_list_low)
-                X_low = solve(A_low, a_low)
-                w_low_new = X_low.ravel()
+            while(norm(w_new-w) >= 1e-4*N**0.5) and (count < limit):
+                count += 1
+                w = w_new
+                A_w,a_w = setAa_linear_n(N, z_diff, win, a_list, b_list)
+                X_low = solve(A_w, a_w)
+                w_new = X_low.ravel()
 
-            z_diff_high = np.diff(z_high)
-            N_high = len(z_diff_high)
-            win_high = self.params.w_in
-            A_high,a_high = setAa_linear_n(N_high, z_diff_high, win_high, a_list_high, b_list_high)
-            X_high = solve(A_high, a_high)
-            w_high_new = X_high.ravel()
-            count_high = 0
-            limit = 100
-            while(norm(w_high_new-w_high) >= 1e-4*N_high**0.5) and (count_high < limit):
-                count_high += 1
-                w_high = w_high_new
-                A_high,a_high = setAa_linear_n(N_high, z_diff_high, win_high, a_list_high, b_list_high)
-                X_high = solve(A_high, a_high)
-                w_high_new = X_high.ravel()
-
-            w_new = np.concatenate((w_low_new, w_high_new))
             state.update({'w': w_new})
             return state
 
@@ -1958,6 +1883,7 @@ class HCFurnaceModel(FurnaceModel):
         fk = (1.75 + 150 * (1 - self.params.epsilon)) / Re
 
         a_list = fk * (1 - self.params.epsilon) * G**2 * P_std * T / (g_c * self.params.epsilon**3 * self.params.d_p * rho * T_std)
+        
         a_list = (a_list[1:] + a_list[:-1]) / 2
 
         z_diff = np.diff(z)
@@ -2069,7 +1995,10 @@ class HCFurnaceModel(FurnaceModel):
         dd = -Az * ((16+12*0)*R1 + 12*R2 + 44*R4 + 16*R5 + 12*R6) / self.params.Fs
 
         a_list = dd
+        bkp = min(len(z[t<1200]), len(z)-2)
+        a_bkp = a_list[bkp]
         a_list = (a_list[1:] + a_list[:-1]) / 2
+        a_list[bkp] = a_bkp
 
         z_diff = np.diff(z)
         N = len(z_diff)
