@@ -67,7 +67,7 @@ z_guess = np.linspace(H0, HH, model.params.initial_mesh)
 # 读取CSV文件
 df = pd.read_csv('R2_1200_2e-5_raw.csv')
 df_hc = pd.read_csv('test_hc_5n4_1e-3_linear_N=100.csv')
-df_hc2 = pd.read_csv('test_hc_5n4_R2_1200_linear_N=200.csv')
+df_hc2 = pd.read_csv('NEW_test_hc_5n4_R2_1200_linear_N=2000.csv')
 df_hc3 = pd.read_csv('test_hc_5n4_R2_1200_linear_N=500.csv')
 df_hc4 = pd.read_csv('test_hc_5n4_R2_1200_linear_N=2000.csv')
 
@@ -93,30 +93,30 @@ sampled_init = pd.DataFrame(np.vstack((z_guess, T, t, fs, fl, x, y, w, rhob, p))
 
 
 # # 通过工作表名称读取
-# df_t = pd.read_excel('Muchi1970b_xO2=0.xlsx', sheet_name='Sheet1')
-# df_T = pd.read_excel('Muchi1970b_xO2=0.xlsx', sheet_name='Sheet2')
-# df_fs = pd.read_excel('Muchi1970b_xO2=0.xlsx', sheet_name='Sheet3')
-# df_fl = pd.read_excel('Muchi1970b_xO2=0.xlsx', sheet_name='Sheet4')
-# df_x = pd.read_excel('Muchi1970b_xO2=0.xlsx', sheet_name='Sheet5')
-# df_y = pd.read_excel('Muchi1970b_xO2=0.xlsx', sheet_name='Sheet6')
-# df_w = pd.read_excel('Muchi1970b_xO2=0.xlsx', sheet_name='Sheet7')
-# df_rhob = pd.read_excel('Muchi1970b_xO2=0.xlsx', sheet_name='Sheet8')
-# df_p = pd.read_excel('Muchi1970b_xO2=0.xlsx', sheet_name='Sheet9')
+df_t = pd.read_excel('Muchi1970b_xO2=0.xlsx', sheet_name='Sheet1')
+df_T = pd.read_excel('Muchi1970b_xO2=0.xlsx', sheet_name='Sheet2')
+df_fs = pd.read_excel('Muchi1970b_xO2=0.xlsx', sheet_name='Sheet3')
+df_fl = pd.read_excel('Muchi1970b_xO2=0.xlsx', sheet_name='Sheet4')
+df_x = pd.read_excel('Muchi1970b_xO2=0.xlsx', sheet_name='Sheet5')
+df_y = pd.read_excel('Muchi1970b_xO2=0.xlsx', sheet_name='Sheet6')
+df_w = pd.read_excel('Muchi1970b_xO2=0.xlsx', sheet_name='Sheet7')
+df_rhob = pd.read_excel('Muchi1970b_xO2=0.xlsx', sheet_name='Sheet8')
+df_p = pd.read_excel('Muchi1970b_xO2=0.xlsx', sheet_name='Sheet9')
 # 
 # # 
-# zt, t_ref = multi_value_interpolation(np.asarray(df_t['z']), np.asarray(df_t['t']), num_output_points=len(indices))
-# zT, T_ref = multi_value_interpolation(np.asarray(df_T['z']), np.asarray(df_T['T']), num_output_points=len(indices))
-# zfs, fs_ref = multi_value_interpolation(np.asarray(df_fs['z']), np.asarray(df_fs['fs']), num_output_points=len(indices))
-# zfl, fl_ref = multi_value_interpolation(np.asarray(df_fl['z']), np.asarray(df_fl['fl']), num_output_points=len(indices))
-# zx, x_ref = multi_value_interpolation(np.asarray(df_x['z']), np.asarray(df_x['x']), num_output_points=len(indices))
-# zy, y_ref = multi_value_interpolation(np.asarray(df_y['z']), np.asarray(df_y['y']), num_output_points=len(indices))
-# zw, w_ref = multi_value_interpolation(np.asarray(df_w['z']), np.asarray(df_w['w']), num_output_points=len(indices))
-# zrhob, rhob_ref = multi_value_interpolation(np.asarray(df_rhob['z']), np.asarray(df_rhob['rhob']), num_output_points=len(indices))
-# zp, p_ref = multi_value_interpolation(np.asarray(df_p['z']), np.asarray(df_p['p']*1e4), num_output_points=len(indices))
-# # F_ref = multi_value_interpolation(np.asarray(df_F['z']), np.asarray(df_F['F']), num_output_points=len(indices))
+zt, t_ref = multi_value_interpolation(np.asarray(df_t['z']), np.asarray(df_t['t']), num_output_points=len(indices))
+zT, T_ref = multi_value_interpolation(np.asarray(df_T['z']), np.asarray(df_T['T']), num_output_points=len(indices))
+zfs, fs_ref = multi_value_interpolation(np.asarray(df_fs['z']), np.asarray(df_fs['fs']), num_output_points=len(indices))
+zfl, fl_ref = multi_value_interpolation(np.asarray(df_fl['z']), np.asarray(df_fl['fl']), num_output_points=len(indices))
+zx, x_ref = multi_value_interpolation(np.asarray(df_x['z']), np.asarray(df_x['x']), num_output_points=len(indices))
+zy, y_ref = multi_value_interpolation(np.asarray(df_y['z']), np.asarray(df_y['y']), num_output_points=len(indices))
+zw, w_ref = multi_value_interpolation(np.asarray(df_w['z']), np.asarray(df_w['w']), num_output_points=len(indices))
+zrhob, rhob_ref = multi_value_interpolation(np.asarray(df_rhob['z']), np.asarray(df_rhob['rhob']), num_output_points=len(indices))
+zp, p_ref = multi_value_interpolation(np.asarray(df_p['z']), np.asarray(df_p['p']*1e4), num_output_points=len(indices))
+# F_ref = multi_value_interpolation(np.asarray(df_F['z']), np.asarray(df_F['F']), num_output_points=len(indices))
 
-# z_ref = [zT, zt, zfs, zfl, zx, zy, zw, zrhob, zp]
-# df_ref = pd.DataFrame({'T': T_ref, 't': t_ref, 'fs': fs_ref, 'fl': fl_ref, 'x': x_ref, 'y': y_ref, 'w': w_ref, 'rhob': rhob_ref, 'p': p_ref})
+z_ref = [zT, zt, zfs, zfl, zx, zy, zw, zrhob, zp]
+df_ref = pd.DataFrame({'T': T_ref, 't': t_ref, 'fs': fs_ref, 'fl': fl_ref, 'x': x_ref, 'y': y_ref, 'w': w_ref, 'rhob': rhob_ref, 'p': p_ref})
 
 plt.rcParams['font.family'] = ['SimHei', 'Times New Roman']
 # 作图
@@ -131,13 +131,13 @@ variables = ['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']
 y_labels = ['T(K)', 't(K)', 'fs(-)', 'fl(-)', 'x(-)', 'y(-)', 'w(-)', 'rhob(kg/m^3 bed)', 'p(Kg/m2)']
 for i in range(9):
     plt.subplot(3, 3, i+1)
-    plt.plot(y_init['z'], y_init[variables[i]], label = '分段线性初值', linestyle='--') # 
+    # plt.plot(y_init['z'], y_init[variables[i]], label = '分段线性初值', linestyle='--') # 
     plt.plot(y_bvp['z'], y_bvp[variables[i]], label = 'bvp_tol=2e-5')       # 
-    plt.plot(y_bvp_hc['z'], y_bvp_hc[variables[i]], label = 'N=100') # 
-    plt.plot(y_bvp_hc2['z'], y_bvp_hc2[variables[i]], label = 'R2分段 N=200', linestyle=':',linewidth=2.0) # 
-    plt.plot(y_bvp_hc3['z'], y_bvp_hc3[variables[i]], label = 'R2分段 N=500', linestyle=':',linewidth=2.0) # 
-    plt.plot(y_bvp_hc4['z'], y_bvp_hc4[variables[i]], label = 'R2分段 N=2000', linestyle=':',linewidth=2.0) # 
-    # plt.plot(z_ref[i], df_ref[variables[i]], label = 'Muchi1970b_xO2=0')        # Muchi1970b_xO2=0.xlsx
+    # plt.plot(y_bvp_hc['z'], y_bvp_hc[variables[i]], label = 'N=100') # 
+    plt.plot(y_bvp_hc2['z'], y_bvp_hc2[variables[i]], label = 'R2分段 N=2000', linestyle=':',linewidth=2.0) # 
+    # plt.plot(y_bvp_hc3['z'], y_bvp_hc3[variables[i]], label = 'R2分段 N=500', linestyle=':',linewidth=2.0) # 
+    # plt.plot(y_bvp_hc4['z'], y_bvp_hc4[variables[i]], label = 'R2分段 N=2000', linestyle=':',linewidth=2.0) # 
+    plt.plot(z_ref[i], df_ref[variables[i]], label = 'Muchi1970b_xO2=0')        # Muchi1970b_xO2=0.xlsx
     plt.ylabel(y_labels[i])
     plt.xlabel('z')
     plt.legend()

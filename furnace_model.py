@@ -1346,7 +1346,7 @@ class NormalizedFurnaceModel(FurnaceModel):
         
         return bc_norm
     
-    def solve_normalized(self):
+    def solve_normalized(self, save_csv=True, output_csv=None):
         """使用归一化变量求解"""
         z_guess, state = self._build_initial_guess()
         y_guess_physical = np.array([state[k] for k in ['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']])
@@ -1365,6 +1365,8 @@ class NormalizedFurnaceModel(FurnaceModel):
         if sol_norm.success:
             z_physical = sol_norm.x * self.norms['z']
             y_physical = self.denormalize_y(sol_norm.y)
+            self.z_solution = z_physical
+            self.y_solution = y_physical
 
             plt.figure(figsize=(12, 8))
             variables = ['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']
@@ -1376,10 +1378,11 @@ class NormalizedFurnaceModel(FurnaceModel):
             plt.tight_layout()
             plt.close()
 
-            # 保存结果
-            df = pd.DataFrame(np.vstack((z_physical, y_physical)).T, columns=['z'] + variables)
-            # df.to_csv(f'{self.params.case_name}_{self.params.H0:.1f}-{self.params.HH:.1f}m_1e-3_normalized.csv', index=False)
-            df.to_csv(f'sharp_R2_1200_1e-3_normalized.csv', index=False)
+            if save_csv:
+                if output_csv is None:
+                    output_csv = f'sharp_R2_1200_1e-3_normalized.csv'
+                df = pd.DataFrame(np.vstack((z_physical, y_physical)).T, columns=['z'] + variables)
+                df.to_csv(output_csv, index=False)
 
             self.results = {
                 "case_name": self.params.case_name,
