@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import os
 
 # 分段线性分布作为初值
 def multi_value_interpolation(x_control, y_control, num_output_points=2000):
@@ -65,7 +66,7 @@ p = model.multi_value_interpolation(H_ctrl, p_ctrl, model.params.initial_mesh)
 z_guess = np.linspace(H0, HH, model.params.initial_mesh)
 
 # 读取CSV文件
-df = pd.read_csv('R2_1200_2e-5_raw.csv')
+df = pd.read_csv('default_case_U_10_0.0-20.0m.csv')
 df_hc = pd.read_csv('test_hc_5n4_1e-3_linear_N=100.csv')
 df_hc2 = pd.read_csv('NEW_test_hc_5n4_R2_1200_linear_N=2000.csv')
 df_hc3 = pd.read_csv('test_hc_5n4_R2_1200_linear_N=500.csv')
@@ -132,9 +133,9 @@ y_labels = ['T(K)', 't(K)', 'fs(-)', 'fl(-)', 'x(-)', 'y(-)', 'w(-)', 'rhob(kg/m
 for i in range(9):
     plt.subplot(3, 3, i+1)
     # plt.plot(y_init['z'], y_init[variables[i]], label = '分段线性初值', linestyle='--') # 
-    plt.plot(y_bvp['z'], y_bvp[variables[i]], label = 'bvp_tol=2e-5')       # 
+    plt.plot(y_bvp['z'], y_bvp[variables[i]], label = 'bvp')       # 
     # plt.plot(y_bvp_hc['z'], y_bvp_hc[variables[i]], label = 'N=100') # 
-    plt.plot(y_bvp_hc2['z'], y_bvp_hc2[variables[i]], label = 'R2分段 N=2000', linestyle=':',linewidth=2.0) # 
+    plt.plot(y_bvp_hc2['z'], y_bvp_hc2[variables[i]], label = 'isomorphic', linewidth=2.0) # 
     # plt.plot(y_bvp_hc3['z'], y_bvp_hc3[variables[i]], label = 'R2分段 N=500', linestyle=':',linewidth=2.0) # 
     # plt.plot(y_bvp_hc4['z'], y_bvp_hc4[variables[i]], label = 'R2分段 N=2000', linestyle=':',linewidth=2.0) # 
     plt.plot(z_ref[i], df_ref[variables[i]], label = 'Muchi1970b_xO2=0')        # Muchi1970b_xO2=0.xlsx
@@ -162,4 +163,110 @@ plt.show()
 #     plt.xlabel('z')
 # plt.tight_layout()
 # plt.show()
+
+def plot_U_sensitivity_profiles(save_fig=True):
+    """
+    绘制U参数敏感度测试与reference_0_20.csv的9变量profile对比，并保存图片
+    """
+    import matplotlib as mpl
+    mpl.rcParams['font.family'] = 'Times New Roman'
+    mpl.rcParams['axes.unicode_minus'] = False
+    from matplotlib import font_manager
+    import os
+    # 设置宋体用于中文
+    zh_font = font_manager.FontProperties(fname=font_manager.findSystemFonts(fontpaths=None, fontext='ttf')[0], size=13)
+    for f in font_manager.findSystemFonts(fontpaths=None, fontext='ttf'):
+        if 'simsun' in f.lower() or 'song' in f.lower():
+            zh_font = font_manager.FontProperties(fname=f, size=13)
+            break
+
+    df_rmse = pd.read_csv('cases/sensitivity_U_profile_rmse.csv')
+    ref = pd.read_csv('reference_0_20.csv')
+    variables = ['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']
+    latex_labels = [
+        r'$\it{T}$',
+        r'$\it{t}$',
+        r'$\it{f}_{\it{s}}$',
+        r'$\it{f}_{\it{l}}$',
+        r'$\it{x}$',
+        r'$\it{y}$',
+        r'$\it{w}$',
+        r'$\rho_{\it{b}}$',
+        r'$\it{p}$'
+    ]
+    z_ref = ref['z'].values
+
+    # 3:2
+    if save_fig:
+        d_root = 'D:/出图'
+        if not os.path.exists(d_root):
+            d_root = 'D:/output'
+        outdir = os.path.join(d_root, '260130')
+        os.makedirs(outdir, exist_ok=True)
+        plt.figure(figsize=(18, 12))
+    else:
+        plt.figure(figsize=(18, 18))
+
+    for i, (var, label) in enumerate(zip(variables, latex_labels)):
+        plt.subplot(3, 3, i+1)
+        plt.plot(z_ref, ref[var], label='Reference', color='black', linewidth=2)
+        y_min, y_max = np.nanmin(ref[var]), np.nanmax(ref[var])
+        for _, row in df_rmse.iterrows():
+            u = row['U']
+            file = row['file']
+            try:
+                df = pd.read_csv(file)
+                plt.plot(df['z'], df[var], label=f'U={u}')
+                y_min = min(y_min, np.nanmin(df[var]))
+                y_max = max(y_max, np.nanmax(df[var]))
+            except Exception as e:
+                print(f"跳过 {file}: {e}")
+        plt.xlabel('z (m)', fontproperties=zh_font)
+        plt.ylabel(label, fontproperties=None)
+        plt.title(label, fontsize=14, pad=10, fontproperties=zh_font)
+        plt.xlim(0, 20)
+        y_range = y_max - y_min
+        plt.ylim(y_min - 0.1*y_range, y_max + 0.1*y_range)
+        plt.legend(fontsize=10)
+        plt.grid(True)
+    plt.subplots_adjust(top=0.93, hspace=0.35, wspace=0.25)
+    if save_fig:
+        outpath1 = os.path.join(outdir, 'sensitivity_U_3_2.png')
+        plt.savefig(outpath1, dpi=1000, bbox_inches='tight')
+        print(f"图片已保存到 {outpath1}")
+        plt.close()
+        # 4:3
+        plt.figure(figsize=(16, 12))
+        for i, (var, label) in enumerate(zip(variables, latex_labels)):
+            plt.subplot(3, 3, i+1)
+            plt.plot(z_ref, ref[var], label='Reference', color='black', linewidth=2)
+            y_min, y_max = np.nanmin(ref[var]), np.nanmax(ref[var])
+            for _, row in df_rmse.iterrows():
+                u = row['U']
+                file = row['file']
+                try:
+                    df = pd.read_csv(file)
+                    plt.plot(df['z'], df[var], label=f'U={u}')
+                    y_min = min(y_min, np.nanmin(df[var]))
+                    y_max = max(y_max, np.nanmax(df[var]))
+                except Exception as e:
+                    print(f"跳过 {file}: {e}")
+            plt.xlabel('z (m)', fontproperties=zh_font)
+            plt.ylabel(label, fontproperties=None)
+            plt.title(label, fontsize=14, pad=10, fontproperties=zh_font)
+            plt.xlim(0, 20)
+            y_range = y_max - y_min
+            plt.ylim(y_min - 0.1*y_range, y_max + 0.1*y_range)
+            plt.legend(fontsize=10)
+            plt.grid(True)
+        plt.subplots_adjust(top=0.93, hspace=0.35, wspace=0.25)
+        outpath2 = os.path.join(outdir, 'sensitivity_U_4_3.png')
+        plt.savefig(outpath2, dpi=1000, bbox_inches='tight')
+        print(f"图片已保存到 {outpath2}")
+        plt.close()
+    else:
+        plt.show()
+
+# 示例调用
+# plot_U_sensitivity_profiles()
 
