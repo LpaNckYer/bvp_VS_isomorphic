@@ -6,6 +6,7 @@ import pandas as pd
 
 from furnace_model import FurnaceModel, NormalizedFurnaceModel
 from parameters import create_standard_case, quick_modify
+from paths import REPO_ROOT, cases_path, ensure_dirs
 
 RESULT_VARS = ['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']
 SUMMARY_KEYS = ['T_out', 't_out', 'fs_out', 'fl_out', 'x_out', 'y_out', 'w_out', 'rhob_out', 'p_bottom']
@@ -42,7 +43,8 @@ def read_reference_profile(reference_path, z_col='z', variables=None):
 
 def model_output_path(params):
     filename = f"{params.case_name}_{params.H0:.1f}-{params.HH:.1f}m.csv"
-    return os.path.join(os.getcwd(), filename)
+    # FurnaceModel 默认写到当前工作目录；这里统一认为模型剖面输出放在 data/
+    return str((REPO_ROOT / "data" / filename).resolve())
 
 
 def compare_profiles(df_ref, df_model, z_col='z', variables=None):
@@ -94,8 +96,15 @@ def load_model_result_csv(params):
 
 
 def run_case(params, model_class=FurnaceModel, save_parameters=False):
+    ensure_dirs()
     model = model_class(params)
-    results = model.run()
+    # 统一将模型 profile 输出写入 data/
+    old_cwd = os.getcwd()
+    try:
+        os.chdir(str((REPO_ROOT / "data").resolve()))
+        results = model.run()
+    finally:
+        os.chdir(old_cwd)
     if save_parameters:
         from save_load import save_parameters as _save
         _save(params)
@@ -151,12 +160,11 @@ def run_parameter_sensitivity(base_params,
 
     df = pd.DataFrame(records)
     if output_csv is None:
-        output_csv = f'cases/sensitivity_{param_name}.csv'
-    output_dir = os.path.dirname(output_csv)
-    if output_dir:
-        os.makedirs(output_dir, exist_ok=True)
-    df.to_csv(output_csv, index=False, encoding='utf-8')
-    print(f'敏感度分析结果已保存: {output_csv}')
+        output_csv = str(cases_path(f"sensitivity_{param_name}.csv"))
+    ensure_dirs()
+    out_p = (REPO_ROOT / output_csv).resolve() if not os.path.isabs(output_csv) else output_csv
+    df.to_csv(out_p, index=False, encoding='utf-8')
+    print(f'敏感度分析结果已保存: {out_p}')
     return df
 
 
@@ -207,12 +215,11 @@ def run_parameter_grid_search(base_params,
         df = df.sort_values(sort_key)
 
     if output_csv is None:
-        output_csv = 'cases/grid_search_results.csv'
-    output_dir = os.path.dirname(output_csv)
-    if output_dir:
-        os.makedirs(output_dir, exist_ok=True)
-    df.to_csv(output_csv, index=False, encoding='utf-8')
-    print(f'网格搜索结果已保存: {output_csv}')
+        output_csv = str(cases_path("grid_search_results.csv"))
+    ensure_dirs()
+    out_p = (REPO_ROOT / output_csv).resolve() if not os.path.isabs(output_csv) else output_csv
+    df.to_csv(out_p, index=False, encoding='utf-8')
+    print(f'网格搜索结果已保存: {out_p}')
     return df
 
 

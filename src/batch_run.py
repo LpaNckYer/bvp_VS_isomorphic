@@ -1,12 +1,17 @@
 # batch_run.py
+import os
+
 import pandas as pd
-from parameters import FurnaceParameters, quick_modify, create_standard_case
+
+from parameters import quick_modify, create_standard_case
 from furnace_model import FurnaceModel
 from save_load import save_parameters
+from paths import REPO_ROOT, cases_path, ensure_dirs, logs_path
 
 def run_batch_study(study_type="heat_loss_hp"):
     """批量运行参数研究"""
-    
+
+    ensure_dirs()
     base_params = create_standard_case("default")
     all_results = []
     
@@ -20,7 +25,12 @@ def run_batch_study(study_type="heat_loss_hp"):
                                 U=hp)
             
             model = FurnaceModel(params)
-            results = model.run()
+            old_cwd = os.getcwd()
+            try:
+                os.chdir(str((REPO_ROOT / "data").resolve()))
+                results = model.run()
+            finally:
+                os.chdir(old_cwd)
             
             result_info = {
                 'case_name': params.case_name,
@@ -44,7 +54,12 @@ def run_batch_study(study_type="heat_loss_hp"):
                                 epsilon=ep)
             
             model = FurnaceModel(params)
-            results = model.run()
+            old_cwd = os.getcwd()
+            try:
+                os.chdir(str((REPO_ROOT / "data").resolve()))
+                results = model.run()
+            finally:
+                os.chdir(old_cwd)
             
             result_info = {
                 'case_name': params.case_name,
@@ -64,7 +79,12 @@ def run_batch_study(study_type="heat_loss_hp"):
                                 initial_mesh=grid)
             
             model = FurnaceModel(params)
-            results = model.run()
+            old_cwd = os.getcwd()
+            try:
+                os.chdir(str((REPO_ROOT / "data").resolve()))
+                results = model.run()
+            finally:
+                os.chdir(old_cwd)
             
             result_info = {
                 'case_name': params.case_name,
@@ -80,9 +100,10 @@ def run_batch_study(study_type="heat_loss_hp"):
     
     # 保存结果汇总
     df = pd.DataFrame(all_results)
-    df.to_csv(f'cases/batch_results_{study_type}.csv', index=False, encoding='utf-8')
+    out_csv = logs_path(f"batch_results_{study_type}.csv")
+    df.to_csv(out_csv, index=False, encoding='utf-8')
     
     print(f"\n完成 {len(all_results)} 个算例")
-    print(f"结果已保存: cases/batch_results_{study_type}.csv")
+    print(f"结果已保存: {out_csv}")
     
     return df

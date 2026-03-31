@@ -1,0 +1,48 @@
+2026-03-31 18:11:14,962 [INFO] Initial convergence test started: 61 cases, ref=D:\Group\HyOCR\20260130\data\default_case_U_10_0.0-20.0m.csv
+2026-03-31 18:11:14,962 [INFO] Case 0 (baseline) start, scales=(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+2026-03-31 18:11:14,962 [INFO] 计算中：ic_bvp_0
+2026-03-31 18:11:14,963 [INFO] 第 1 轮迭代，容差: 0.1
+2026-03-31 18:21:53,686 [INFO] 第 2 轮迭代，容差: 0.01
+2026-03-31 18:24:02,392 [INFO] 第 3 轮迭代，容差: 0.001
+2026-03-31 18:26:10,106 [INFO] === 迭代历史 ===
+2026-03-31 18:26:10,106 [INFO] 轮次 1: 容差=1.0e-01, 节点数=2561, 成功=True
+2026-03-31 18:26:10,106 [INFO] 轮次 2: 容差=1.0e-02, 节点数=2561, 成功=True
+2026-03-31 18:26:10,106 [INFO] 轮次 3: 容差=1.0e-03, 节点数=2561, 成功=True
+2026-03-31 18:26:10,330 [INFO] Case 0 BVP: success, elapsed=895.37s
+2026-03-31 18:26:10,330 [INFO] [outer 1/10000] start
+2026-03-31 18:39:52,017 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=5.062e-04, err_y=8.807e-04, err_fl=5.411e-04
+2026-03-31 18:39:52,017 [INFO] inner loop converged at iter 1
+2026-03-31 18:39:54,160 [INFO] [outer 1] err_w=9.700e-04, err_fs=6.778e-04, err_p=5.348e-02, err_rhob=3.572e-03
+2026-03-31 18:39:54,160 [INFO] [outer 2/10000] start
+2026-03-31 18:53:15,390 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=4.080e-04, err_y=7.545e-04, err_fl=7.311e-04
+2026-03-31 18:53:15,390 [INFO] inner loop converged at iter 1
+2026-03-31 18:53:16,922 [INFO] [outer 2] err_w=6.243e-04, err_fs=9.835e-04, err_p=7.479e-03, err_rhob=2.929e-03
+2026-03-31 18:53:16,922 [INFO] [outer 3/10000] start
+2026-03-31 19:05:32,945 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=8.032e-04, err_y=9.857e-04, err_fl=4.955e-04
+2026-03-31 19:05:32,945 [INFO] inner loop converged at iter 1
+2026-03-31 19:05:34,446 [INFO] [outer 3] err_w=7.960e-04, err_fs=4.900e-04, err_p=1.326e-02, err_rhob=4.087e-03
+2026-03-31 19:05:34,447 [INFO] [outer 4/10000] start
+2026-03-31 19:17:44,248 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=4.781e-04, err_y=1.041e-03, err_fl=9.991e-04
+2026-03-31 19:29:38,432 [INFO] inner loop converged at iter 2
+2026-03-31 19:29:39,859 [INFO] [outer 4] err_w=5.780e-04, err_fs=7.587e-04, err_p=3.308e-03, err_rhob=1.641e-03
+2026-03-31 19:29:39,859 [INFO] [outer 5/10000] start
+2026-03-31 19:41:39,342 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=4.256e-04, err_y=8.676e-04, err_fl=6.085e-04
+2026-03-31 19:41:39,342 [INFO] inner loop converged at iter 1
+2026-03-31 19:41:40,578 [INFO] [outer 5] err_w=6.920e-04, err_fs=5.189e-04, err_p=1.270e-03, err_rhob=1.588e-03
+2026-03-31 19:41:40,578 [INFO] [outer 6/10000] start
+2026-03-31 19:53:48,566 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=6.007e-04, err_y=1.242e-03, err_fl=8.305e-04
+2026-03-31 20:06:05,313 [INFO] inner loop converged at iter 2
+2026-03-31 20:06:06,452 [INFO] [outer 6] err_w=4.460e-04, err_fs=9.209e-04, err_p=2.597e-03, err_rhob=1.708e-03
+2026-03-31 20:06:06,452 [INFO] [outer 7/10000] start
+2026-03-31 20:18:26,565 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=4.215e-04, err_y=1.036e-03, err_fl=8.021e-04
+2026-03-31 20:30:55,842 [INFO] inner loop converged at iter 2
+2026-03-31 20:30:57,031 [INFO] [outer 7] err_w=4.061e-04, err_fs=6.413e-04, err_p=1.350e-03, err_rhob=1.203e-03
+2026-03-31 20:30:57,031 [INFO] [outer 8/10000] start
+2026-03-31 20:43:28,168 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=3.881e-04, err_y=9.168e-04, err_fl=7.408e-04
+2026-03-31 20:43:28,168 [INFO] inner loop converged at iter 1
+2026-03-31 20:43:29,264 [INFO] [outer 8] err_w=4.246e-04, err_fs=9.490e-04, err_p=3.802e-03, err_rhob=3.076e-04
+2026-03-31 20:43:29,264 [INFO] [outer 9/10000] start
+2026-03-31 20:55:56,959 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=7.944e-04, err_y=3.451e-04, err_fl=4.806e-04
+2026-03-31 20:55:56,959 [INFO] inner loop converged at iter 1
+2026-03-31 20:55:57,846 [INFO] [outer 9] err_w=7.820e-04, err_fs=4.880e-04, err_p=1.971e-03, err_rhob=6.515e-04
+2026-03-31 20:55:57,846 [INFO] [outer 10/10000] start

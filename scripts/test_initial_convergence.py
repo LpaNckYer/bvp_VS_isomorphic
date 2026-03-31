@@ -13,10 +13,6 @@ from copy import deepcopy
 from itertools import product
 from pathlib import Path
 
-import matplotlib
-
-matplotlib.use("Agg")
-
 import numpy as np
 import pandas as pd
 
@@ -27,15 +23,26 @@ for p in (SRC, ROOT):
     if s not in sys.path:
         sys.path.insert(0, s)
 
+import matplotlib
+
+matplotlib.use("Agg")
+
 from furnace_model import FurnaceModel, HCFurnaceModel
 from main import converge_full
 from parameters import FurnaceParameters
-
-logging.basicConfig(level=logging.WARNING)
+from paths import logs_path, ensure_dirs
 
 REF_CSV = ROOT / "data" / "default_case_U_10_0.0-20.0m.csv"
 OUT_CSV = ROOT / "logs" / "initial_convergence_test.csv"
 TMP_RUN = ROOT / "tmp" / "initial_convergence_runs"
+
+LOG_FILE = logs_path("initial_convergence.log")
+LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[logging.FileHandler(LOG_FILE, encoding="utf-8")],
+)
 
 STATE_VARS = ["T", "t", "fs", "fl", "x", "y", "w", "rhob", "p"]
 
@@ -139,6 +146,7 @@ def build_test_cases(
 
 
 def main():
+    ensure_dirs()
     OUT_CSV.parent.mkdir(parents=True, exist_ok=True)
     TMP_RUN.mkdir(parents=True, exist_ok=True)
 
@@ -159,11 +167,15 @@ def main():
     results: list[dict] = []
 
     t_prog0 = time.perf_counter()
+    logging.info(
+        "Initial convergence test started: %d cases, ref=%s", n_cases, REF_CSV
+    )
     cwd = os.getcwd()
     step_idx = 0
     try:
         os.chdir(TMP_RUN)
         for ci, (case_id, scales, label) in enumerate(cases, start=1):
+            logging.info("Case %d (%s) start, scales=%s", case_id, label, scales)
             perturbed = apply_scale_factors(base_controls, scales)
             name_bvp = f"ic_bvp_{case_id}"
             name_hc = f"ic_hc_{case_id}"
@@ -197,6 +209,9 @@ def main():
                 rmse_bvp = {}
             elapsed_bvp = time.perf_counter() - t0
             step_idx += 1
+            logging.info(
+                "Case %d BVP: %s, elapsed=%.2fs", case_id, status_bvp, elapsed_bvp
+            )
 
             results.append(
                 {
@@ -222,6 +237,9 @@ def main():
                 rmse_hc = {}
             elapsed_hc = time.perf_counter() - t1
             step_idx += 1
+            logging.info(
+                "Case %d HC: %s, elapsed=%.2fs", case_id, status_hc, elapsed_hc
+            )
 
             case_total_s = elapsed_bvp + elapsed_hc
             results[-1]["case_total_s"] = case_total_s
@@ -248,6 +266,21 @@ def main():
                 if eta_s == eta_s and eta_s >= 60
                 else (f"{eta_s:.0f} s" if eta_s == eta_s else "?")
             )
+            logging.info(
+                "Progress %d/%d (%.1f%%), case %d/%d id=%d (%s), "
+                "BVP=%.2fs HC=%.2fs total=%.2fs ETA=%s",
+                step_idx,
+                total_steps,
+                pct,
+                ci,
+                n_cases,
+                case_id,
+                label,
+                elapsed_bvp,
+                elapsed_hc,
+                case_total_s,
+                eta_str,
+            )
             print(
                 f"进度 [{step_idx}/{total_steps}] ({pct:.1f}%)  "
                 f"算例 {ci}/{n_cases} id={case_id} ({label})  "
@@ -262,6 +295,14 @@ def main():
     pd.DataFrame(results).to_csv(OUT_CSV, index=False)
     print(
         f"完成，共 {len(results)} 条记录，总用时 {wall_total:.2f}s ({wall_total / 60:.2f} min) -> {OUT_CSV}"
+    )
+    logging.info(
+        "Initial convergence test finished: %d records, wall=%.2fs (%.2f min), csv=%s, log=%s",
+        len(results),
+        wall_total,
+        wall_total / 60.0,
+        OUT_CSV,
+        LOG_FILE,
     )
 
 

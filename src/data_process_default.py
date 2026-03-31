@@ -2,6 +2,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
+from pathlib import Path
+
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+from paths import data_path, cases_path, ensure_dirs, output_path
 
 # 分段线性分布作为初值
 def multi_value_interpolation(x_control, y_control, num_output_points=2000):
@@ -18,7 +22,7 @@ def multi_value_interpolation(x_control, y_control, num_output_points=2000):
 
 from main import load_parameters
 from furnace_model import NormalizedFurnaceModel
-params = load_parameters("my_design")   # 调用已保存的参数
+params = load_parameters("my_design")   # 调用已保存的参数（由 save_load 统一管理路径）
 model = NormalizedFurnaceModel(params)
 
 # 1. 初值设置（分段线性）
@@ -65,12 +69,12 @@ p = model.multi_value_interpolation(H_ctrl, p_ctrl, model.params.initial_mesh)
 
 z_guess = np.linspace(H0, HH, model.params.initial_mesh)
 
-# 读取CSV文件
-df = pd.read_csv('default_case_U_10_0.0-20.0m.csv')
-df_hc = pd.read_csv('test_hc_5n4_1e-3_linear_N=100.csv')
-df_hc2 = pd.read_csv('NEW_test_hc_5n4_R2_1200_linear_N=2000.csv')
-df_hc3 = pd.read_csv('test_hc_5n4_R2_1200_linear_N=500.csv')
-df_hc4 = pd.read_csv('test_hc_5n4_R2_1200_linear_N=2000.csv')
+# 读取CSV文件（统一从 data/）
+df = pd.read_csv(data_path("default_case_U_10_0.0-20.0m.csv"))
+df_hc = pd.read_csv(data_path("test_hc_5n4_1e-3_linear_N=100.csv"))
+df_hc2 = pd.read_csv(data_path("NEW_test_hc_5n4_R2_1200_linear_N=2000.csv"))
+df_hc3 = pd.read_csv(data_path("test_hc_5n4_R2_1200_linear_N=500.csv"))
+df_hc4 = pd.read_csv(data_path("test_hc_5n4_R2_1200_linear_N=2000.csv"))
 
 
 # 生成均匀分布的索引
@@ -93,16 +97,17 @@ sampled_init = pd.DataFrame(np.vstack((z_guess, T, t, fs, fl, x, y, w, rhob, p))
 # sampled_df.to_csv('sampled_file.csv', index=False)
 
 
-# # 通过工作表名称读取
-df_t = pd.read_excel('Muchi1970b_xO2=0.xlsx', sheet_name='Sheet1')
-df_T = pd.read_excel('Muchi1970b_xO2=0.xlsx', sheet_name='Sheet2')
-df_fs = pd.read_excel('Muchi1970b_xO2=0.xlsx', sheet_name='Sheet3')
-df_fl = pd.read_excel('Muchi1970b_xO2=0.xlsx', sheet_name='Sheet4')
-df_x = pd.read_excel('Muchi1970b_xO2=0.xlsx', sheet_name='Sheet5')
-df_y = pd.read_excel('Muchi1970b_xO2=0.xlsx', sheet_name='Sheet6')
-df_w = pd.read_excel('Muchi1970b_xO2=0.xlsx', sheet_name='Sheet7')
-df_rhob = pd.read_excel('Muchi1970b_xO2=0.xlsx', sheet_name='Sheet8')
-df_p = pd.read_excel('Muchi1970b_xO2=0.xlsx', sheet_name='Sheet9')
+# # 通过工作表名称读取（统一从 data/）
+xlsx_path = data_path("Muchi1970b_xO2=0.xlsx")
+df_t = pd.read_excel(xlsx_path, sheet_name="Sheet1")
+df_T = pd.read_excel(xlsx_path, sheet_name="Sheet2")
+df_fs = pd.read_excel(xlsx_path, sheet_name="Sheet3")
+df_fl = pd.read_excel(xlsx_path, sheet_name="Sheet4")
+df_x = pd.read_excel(xlsx_path, sheet_name="Sheet5")
+df_y = pd.read_excel(xlsx_path, sheet_name="Sheet6")
+df_w = pd.read_excel(xlsx_path, sheet_name="Sheet7")
+df_rhob = pd.read_excel(xlsx_path, sheet_name="Sheet8")
+df_p = pd.read_excel(xlsx_path, sheet_name="Sheet9")
 # 
 # # 
 zt, t_ref = multi_value_interpolation(np.asarray(df_t['z']), np.asarray(df_t['t']), num_output_points=len(indices))
@@ -144,6 +149,7 @@ for i in range(9):
     plt.legend()
 plt.tight_layout()
 plt.show()
+plt.close()
 
 
 # plt.plot(y_bvp['z'], y_bvp['T'] - y_bvp_hc['T'], label = 'T_hc - T_bvp')
@@ -164,15 +170,15 @@ plt.show()
 # plt.tight_layout()
 # plt.show()
 
-def plot_U_sensitivity_profiles(save_fig=True):
+def plot_epsilon_sensitivity_profiles(save_fig=True):
     """
-    绘制U参数敏感度测试与reference_0_20.csv的9变量profile对比，并保存图片
+    绘制 epsilon（床层空隙率）敏感度：各算例剖面与 reference_0_20.csv 的 9 变量对比，并保存图片。
+    数据来自 config/cases/sensitivity_epsilon.csv 与 data/default_case_epsilon_*_0.0-20.0m.csv。
     """
     import matplotlib as mpl
     mpl.rcParams['font.family'] = 'Times New Roman'
     mpl.rcParams['axes.unicode_minus'] = False
     from matplotlib import font_manager
-    import os
     # 设置宋体用于中文
     zh_font = font_manager.FontProperties(fname=font_manager.findSystemFonts(fontpaths=None, fontext='ttf')[0], size=13)
     for f in font_manager.findSystemFonts(fontpaths=None, fontext='ttf'):
@@ -180,8 +186,9 @@ def plot_U_sensitivity_profiles(save_fig=True):
             zh_font = font_manager.FontProperties(fname=f, size=13)
             break
 
-    df_rmse = pd.read_csv('cases/sensitivity_U_profile_rmse.csv')
-    ref = pd.read_csv('reference_0_20.csv')
+    ensure_dirs()
+    df_rmse = pd.read_csv(cases_path("sensitivity_epsilon.csv"))
+    ref = pd.read_csv(data_path("reference_0_20.csv"))
     variables = ['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']
     latex_labels = [
         r'$\it{T}$',
@@ -198,10 +205,7 @@ def plot_U_sensitivity_profiles(save_fig=True):
 
     # 3:2
     if save_fig:
-        d_root = 'D:/出图'
-        if not os.path.exists(d_root):
-            d_root = 'D:/output'
-        outdir = os.path.join(d_root, '260130')
+        outdir = output_path("260130")
         os.makedirs(outdir, exist_ok=True)
         plt.figure(figsize=(18, 12))
     else:
@@ -212,15 +216,17 @@ def plot_U_sensitivity_profiles(save_fig=True):
         plt.plot(z_ref, ref[var], label='Reference', color='black', linewidth=2)
         y_min, y_max = np.nanmin(ref[var]), np.nanmax(ref[var])
         for _, row in df_rmse.iterrows():
-            u = row['U']
-            file = row['file']
+            eps = row["value"]
+            prof = _REPO_ROOT / "data" / (
+                f"{row['case_name']}_{row['H0']:.1f}-{row['HH']:.1f}m.csv"
+            )
             try:
-                df = pd.read_csv(file)
-                plt.plot(df['z'], df[var], label=f'U={u}')
+                df = pd.read_csv(prof)
+                plt.plot(df["z"], df[var], label=f"ε={eps}")
                 y_min = min(y_min, np.nanmin(df[var]))
                 y_max = max(y_max, np.nanmax(df[var]))
             except Exception as e:
-                print(f"跳过 {file}: {e}")
+                print(f"跳过 {prof}: {e}")
         plt.xlabel('z (m)', fontproperties=zh_font)
         plt.ylabel(label, fontproperties=None)
         plt.title(label, fontsize=14, pad=10, fontproperties=zh_font)
@@ -231,42 +237,44 @@ def plot_U_sensitivity_profiles(save_fig=True):
         plt.grid(True)
     plt.subplots_adjust(top=0.93, hspace=0.35, wspace=0.25)
     if save_fig:
-        outpath1 = os.path.join(outdir, 'sensitivity_U_3_2.png')
+        outpath1 = os.path.join(outdir, 'sensitivity_epsilon_3_2.png')
         plt.savefig(outpath1, dpi=1000, bbox_inches='tight')
         print(f"图片已保存到 {outpath1}")
         plt.close()
-        # 4:3
-        plt.figure(figsize=(16, 12))
-        for i, (var, label) in enumerate(zip(variables, latex_labels)):
-            plt.subplot(3, 3, i+1)
-            plt.plot(z_ref, ref[var], label='Reference', color='black', linewidth=2)
-            y_min, y_max = np.nanmin(ref[var]), np.nanmax(ref[var])
-            for _, row in df_rmse.iterrows():
-                u = row['U']
-                file = row['file']
-                try:
-                    df = pd.read_csv(file)
-                    plt.plot(df['z'], df[var], label=f'U={u}')
-                    y_min = min(y_min, np.nanmin(df[var]))
-                    y_max = max(y_max, np.nanmax(df[var]))
-                except Exception as e:
-                    print(f"跳过 {file}: {e}")
-            plt.xlabel('z (m)', fontproperties=zh_font)
-            plt.ylabel(label, fontproperties=None)
-            plt.title(label, fontsize=14, pad=10, fontproperties=zh_font)
-            plt.xlim(0, 20)
-            y_range = y_max - y_min
-            plt.ylim(y_min - 0.1*y_range, y_max + 0.1*y_range)
-            plt.legend(fontsize=10)
-            plt.grid(True)
-        plt.subplots_adjust(top=0.93, hspace=0.35, wspace=0.25)
-        outpath2 = os.path.join(outdir, 'sensitivity_U_4_3.png')
-        plt.savefig(outpath2, dpi=1000, bbox_inches='tight')
-        print(f"图片已保存到 {outpath2}")
-        plt.close()
+        # # 4:3
+        # plt.figure(figsize=(16, 12))
+        # for i, (var, label) in enumerate(zip(variables, latex_labels)):
+        #     plt.subplot(3, 3, i+1)
+        #     plt.plot(z_ref, ref[var], label='Reference', color='black', linewidth=2)
+        #     y_min, y_max = np.nanmin(ref[var]), np.nanmax(ref[var])
+        #     for _, row in df_rmse.iterrows():
+        #         eps = row["value"]
+        #         prof = _REPO_ROOT / "data" / (
+        #             f"{row['case_name']}_{row['H0']:.1f}-{row['HH']:.1f}m.csv"
+        #         )
+        #         try:
+        #             df = pd.read_csv(prof)
+        #             plt.plot(df["z"], df[var], label=f"ε={eps}")
+        #             y_min = min(y_min, np.nanmin(df[var]))
+        #             y_max = max(y_max, np.nanmax(df[var]))
+        #         except Exception as e:
+        #             print(f"跳过 {prof}: {e}")
+        #     plt.xlabel('z (m)', fontproperties=zh_font)
+        #     plt.ylabel(label, fontproperties=None)
+        #     plt.title(label, fontsize=14, pad=10, fontproperties=zh_font)
+        #     plt.xlim(0, 20)
+        #     y_range = y_max - y_min
+        #     plt.ylim(y_min - 0.1*y_range, y_max + 0.1*y_range)
+        #     plt.legend(fontsize=10)
+        #     plt.grid(True)
+        # plt.subplots_adjust(top=0.93, hspace=0.35, wspace=0.25)
+        # outpath2 = os.path.join(outdir, 'sensitivity_epsilon_4_3.png')
+        # plt.savefig(outpath2, dpi=1000, bbox_inches='tight')
+        # print(f"图片已保存到 {outpath2}")
+        # plt.close()
     else:
         plt.show()
 
 # 示例调用
-# plot_U_sensitivity_profiles()
+plot_epsilon_sensitivity_profiles()
 
