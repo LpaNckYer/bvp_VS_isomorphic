@@ -76,7 +76,7 @@ class FurnaceModel:
 
         for i, tol in enumerate(tol_levels):
             logging.info(f"第 {i+1} 轮迭代，容差: {tol}")
-            sol = solve_bvp(ode, bc, x, y_init, tol=tol, max_nodes=len(x)*20, verbose=2)
+            sol = solve_bvp(ode, bc, x, y_init, tol=tol, max_nodes=len(x)*20, verbose=0)
 
             history.append({
                 'tol': tol,
@@ -1501,7 +1501,7 @@ class NormalizedFurnaceModel(FurnaceModel):
             y_guess_physical,
             tol = 1e-3,
             max_nodes = 10000,
-            verbose = 2
+            verbose = 0
         )
 
         final_sol = solve_bvp(
@@ -1511,7 +1511,7 @@ class NormalizedFurnaceModel(FurnaceModel):
             sol.y,
             tol = 1e-4,
             max_nodes = 10000,
-            verbose = 2
+            verbose = 0
         )
 
         # # 逐轮缩小容差求解
