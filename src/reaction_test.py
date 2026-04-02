@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from save_load import load_parameters
-from furnace_model import NormalizedFurnaceModel
+from furnace_model import FurnaceModel
 
 
 # 读取CSV文件
@@ -13,7 +13,7 @@ variables = ['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']
 
 case_name = "my_design"
 params = load_parameters(case_name)
-model = NormalizedFurnaceModel(params)
+model = FurnaceModel(params)
 
 R1 = model.ReactionRate_1(df['z'].values, df['T'].values, df['t'].values, df['fs'].values, df['x'].values, df['y'].values, df['w'].values, df['p'].values)
 R2 = model.ReactionRate_2(df['z'].values, df['T'].values, df['t'].values, df['fs'].values, df['x'].values, df['y'].values, df['w'].values, df['p'].values)

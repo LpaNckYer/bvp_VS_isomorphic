@@ -39,6 +39,29 @@ class FurnaceModel:
         self._last_bvp_solution = final_sol
 
         self._log_history(history)
+        if not getattr(final_sol, "success", False):
+            last = history[-1] if history else {}
+            self.results = {
+                "case_name": self.params.case_name,
+                "H0": float(z_guess[0]),
+                "HH": float(z_guess[-1]),
+                "bvp_success": False,
+                "bvp_tol_final": last.get("tol"),
+                "bvp_n_nodes_final": len(getattr(final_sol, "x", []) or []),
+                "bvp_max_rms_residual_final": last.get("max_rms_residual"),
+                "bvp_bc_l2_residual_final": last.get("bc_l2_residual"),
+                "T_out": None,
+                "t_out": None,
+                "fs_out": None,
+                "fl_out": None,
+                "x_out": None,
+                "y_out": None,
+                "w_out": None,
+                "rhob_out": None,
+                "p_bottom": None,
+            }
+            return self.results
+
         self._plot_and_save_results(final_sol, z_guess)
         return self.results
 
@@ -122,6 +145,9 @@ class FurnaceModel:
             })
 
             if not sol.success:
+                if i == 0:
+                    logging.warning("第 1 轮未收敛，终止后续容差迭代")
+                    return sol, history
                 logging.warning(f"第 {i+1} 轮未收敛，继续")
             x = np.linspace(x_span[0], x_span[1], len(sol.x))
             y_init = sol.sol(x)
@@ -1327,302 +1353,7 @@ class FurnaceModel:
         dCsdt = 3.147e-5 # dCsdt (float): specific heat of solid particles differential T. [kcal / kg * K**2]
         return Cs,dCsdt
 
-
-class NormalizedFurnaceModel(FurnaceModel):
-    """归一化版本的高炉模型"""
-    
-    def __init__(self, parameters):
-        super().__init__(parameters)
-        self.norms = self._compute_normalization_factors()
-    
-    def _compute_normalization_factors(self):
-        """基于边界条件计算归一化因子"""
-        return {
-            'T': max(self.params.T_in, 1000),
-            't': max(self.params.t_in, 1000),
-            'fs': 1.0,
-            'fl': 1.0,
-            'x': max(self.params.x_in, 0.3),
-            'y': max(0.2, 1 - self.params.x_in - 0.05),  # 估计值
-            'w': max(self.params.w_in, 0.05),
-            'rhob': self.params.rhob_in,
-            'p': self.params.p_in,
-            'z': self.params.HH - self.params.H0
-        }
-    
-    def normalize_y(self, Y_physical):
-        """物理量 → 归一化量"""
-        norms = self.norms
-        Y_norm = Y_physical.copy()
-        for i, key in enumerate(['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']):
-            Y_norm[i] /= norms[key]
-        return Y_norm
-    
-    def denormalize_y(self, Y_norm):
-        """归一化量 → 物理量"""
-        norms = self.norms
-        Y_physical = Y_norm.copy()
-        for i, key in enumerate(['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']):
-            Y_physical[i] *= norms[key]
-        return Y_physical
-    
-    def normalized_bvp(self, z, Y_norm):
-        """归一化变量的BVP函数"""
-        # 转换为物理量
-        Y_physical = self.denormalize_y(Y_norm)
-        
-        # 计算物理导数
-        dY_physical = super().blast_furnace_bvp(z, Y_physical)
-        
-        # 转换为归一化导数
-        norms = self.norms
-        dY_norm = dY_physical.copy()
-        for i, key in enumerate(['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']):
-            dY_norm[i] *= norms['z'] / norms[key]
-        
-        return dY_norm
-    
-    def normalized_bc(self, ya_norm, yb_norm):
-        """归一化变量的边界条件"""
-        # 转换为物理量
-        ya = self.denormalize_y(ya_norm)
-        yb = self.denormalize_y(yb_norm)
-        
-        # 计算物理边界条件
-        bc_physical = super().bc(ya, yb)
-        
-        # 归一化边界条件残差
-        norms = self.norms
-        bc_norm = bc_physical.copy()
-        for i, key in enumerate(['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']):
-            bc_norm[i] /= norms[key]
-        
-        return bc_norm
-    
-    def solve_normalized(self):
-        """使用归一化变量求解"""
-        z_guess, state = self._build_initial_guess()
-        y_guess_physical = np.array([state[k] for k in ['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']])
-        y_guess_norm = self.normalize_y(y_guess_physical)
-
-        H0_norm = self.params.H0 / self.norms['z']
-        HH_norm = self.params.HH / self.norms['z']
-
-        sol_norm, history = self._solve_with_decreasing_tol(
-            self.normalized_bvp, self.normalized_bc, [H0_norm, HH_norm], y_guess_norm,
-            tol_levels=[1e-1, 1e-2, 1e-3],
-            verbose=getattr(self, "bvp_verbose", 0),
-        )
-
-        self._log_history(history)
-
-        if sol_norm.success:
-            z_physical = sol_norm.x * self.norms['z']
-            y_physical = self.denormalize_y(sol_norm.y)
-
-            plt.figure(figsize=(12, 8))
-            variables = ['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']
-            for i in range(9):
-                plt.subplot(3, 3, i+1)
-                plt.plot(z_physical, y_physical[i])
-                plt.ylabel(variables[i])
-                plt.xlabel('z (m)')
-            plt.tight_layout()
-            plt.close()
-
-            # 保存结果
-            df = pd.DataFrame(np.vstack((z_physical, y_physical)).T, columns=['z'] + variables)
-            # df.to_csv(f'{self.params.case_name}_{self.params.H0:.1f}-{self.params.HH:.1f}m_1e-3_normalized.csv', index=False)
-            df.to_csv(f'sharp_R2_1200_1e-3_normalized.csv', index=False)
-
-            self.results = {
-                "case_name": self.params.case_name,
-                "H0": z_physical[0],
-                "HH": z_physical[-1],
-                "T_out": y_physical[0,0],
-                "t_out": y_physical[1,-1],
-                "fs_out": y_physical[2,-1],
-                "fl_out": y_physical[3,-1],
-                "x_out": y_physical[4,0],
-                "y_out": y_physical[5,0],
-                "w_out": y_physical[6,0],    
-                "rhob_out": y_physical[7,-1],    
-                "p_bottom": y_physical[8,-1]
-            }
-
-            return self.results
-        else:
-            raise RuntimeError("求解失败")
-        
-    def init_test(self):
-        """使用归一化变量求解"""
-
-        ## 读取CSV文件作为初值
-        df = pd.read_csv('R2_1200_1e-3_normalized.csv')
-        # 生成均匀分布的索引
-        indices = np.linspace(0, len(df)-1, len(df), dtype=int)    # 测试初值的残差
-        # 按索引取行
-        sampled_df = df.iloc[indices]
-        z_guess_physical = sampled_df['z'].values
-        T = sampled_df['T'].values
-        t = sampled_df['t'].values
-        fs = sampled_df['fs'].values
-        fl = sampled_df['fl'].values   
-        x = sampled_df['x'].values
-        y = sampled_df['y'].values
-        w = sampled_df['w'].values
-        rhob = sampled_df['rhob'].values
-        p = sampled_df['p'].values
-
-        y_guess_physical = np.array([T, t, fs, fl, x, y, w, rhob, p])
-
-        # # 归一化初始猜测
-        # z_guess_norm = z_guess_physical / self.norms['z']
-        # y_guess_norm = self.normalize_y(y_guess_physical)
-        
-        # # 使用归一化的BVP求解
-        # sol_norm = solve_bvp(
-        #     self.normalized_bvp, 
-        #     self.normalized_bc, 
-        #     z_guess_norm, 
-        #     y_guess_norm,
-        #     tol = 1e-3,
-        #     max_nodes = 10000,
-        #     verbose = 2
-        # )
-
-        # # 反归一化结果
-        # if sol_norm.success:
-        #     z_physical = sol_norm.x * self.norms['z']
-        #     y_physical = self.denormalize_y(sol_norm.y)
-        #     # 绘制结果
-        #     plt.figure(figsize=(12, 8))
-        #     variables = ['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']
-        #     for i in range(9):
-        #         plt.subplot(3, 3, i+1)
-        #         plt.plot(z_physical, y_physical[i], label='solution')
-        #         plt.ylabel(variables[i])
-        #         plt.xlabel('z (m)')
-        #     plt.tight_layout()
-        #     plt.show()
-
-        #     # 保存结果
-        #     df = pd.DataFrame(np.vstack((z_physical, y_physical)).T, columns=['z'] + variables)
-        #     # df.to_csv(f'{self.params.case_name}_{self.params.H0:.1f}-{self.params.HH:.1f}m_5e-6_normalized.csv', index=False)
-
-        #     self.results = {
-        #         "case_name": self.params.case_name,
-        #         "H0": z_physical[0],
-        #         "HH": z_physical[-1],
-        #         "T_out": y_physical[0,0],
-        #         "t_out": y_physical[1,-1],
-        #         "fs_out": y_physical[2,-1],
-        #         "fl_out": y_physical[3,-1],
-        #         "x_out": y_physical[4,0],
-        #         "y_out": y_physical[5,0],
-        #         "w_out": y_physical[6,0],    
-        #         "rhob_out": y_physical[7,-1],    
-        #         "p_bottom": y_physical[8,-1]
-        #     }
-
-        #     return self.results
-        # else:
-        #     raise RuntimeError("求解失败")
-
-        # ### 存yp_ex
-        # from save_load import load_parameters
-        # params = load_parameters("my_design")
-        # model = NormalizedFurnaceModel(params)
-        # variables = ['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']
-        # yp_ex = [model.dTdz(z_guess_physical,T,t,fs,fl,x,y,w,p),
-        #          model.dtdz(z_guess_physical,T,t,fs,fl,x,y,w,p,rhob),
-        #          model.dfsdz(z_guess_physical,T,t,fs,x,y,w,p),
-        #          model.dfldz(z_guess_physical,T,t,fl,x,y,w,p),
-        #          model.dxdz(z_guess_physical,T,t,fs,fl,x,y,w,p),
-        #          model.dydz(z_guess_physical,T,t,fs,fl,x,y,w,p),
-        #          model.dwdz(z_guess_physical,T,t,fs,fl,x,y,w,p),
-        #          model.drhobdz(z_guess_physical,T,t,fs,fl,x,y,w,p),
-        #          model.dpdz(z_guess_physical,T,x,y,w,p)]
-        # df = pd.DataFrame(np.vstack((z_guess_physical, yp_ex)).T, columns=['z'] + variables)
-        # df.to_csv(f'{self.params.case_name}_{self.params.H0:.1f}-{self.params.HH:.1f}m_1e-5_yp_ex_raw.csv', index=False)
-        # ###
-
-        ## 原始物理方程 ###
-        sol = solve_bvp(
-            self.blast_furnace_bvp, 
-            self.bc, 
-            z_guess_physical, 
-            y_guess_physical,
-            tol = 1e-3,
-            max_nodes = 10000,
-            verbose = 0
-        )
-
-        final_sol = solve_bvp(
-            self.blast_furnace_bvp, 
-            self.bc, 
-            sol.x, 
-            sol.y,
-            tol = 1e-4,
-            max_nodes = 10000,
-            verbose = 0
-        )
-
-        # # 逐轮缩小容差求解
-        # final_sol, history = self.solve_with_decreasing_tol(
-        #     self.blast_furnace_bvp, 
-        #     self.bc, 
-        #     z_guess_physical, 
-        #     y_guess_physical,
-        #     tol_levels=[1e-3, 1e-4, 1e-5, 5e-6]
-        # )
-        # # 输出结果
-        # print("\n=== 迭代历史 ===")
-        # for i, record in enumerate(history):
-        #     print(f"轮次 {i+1}: 容差={record['tol']:.1e}, "
-        #         f"节点数={record['n_nodes']}, 成功={record['success']}")
-
-        # 反归一化结果
-        if final_sol.success:
-            z_physical = final_sol.x
-            y_physical = final_sol.y
-            yp = final_sol.yp
-            # 绘制结果
-            plt.figure(figsize=(12, 8))
-            variables = ['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']
-            for i in range(9):
-                plt.subplot(3, 3, i+1)
-                plt.plot(z_physical, y_physical[i], label='solution')
-                plt.ylabel(variables[i])
-                plt.xlabel('z (m)')
-            plt.tight_layout()
-            plt.show()
-
-            # 保存结果
-            df = pd.DataFrame(np.vstack((z_physical, y_physical)).T, columns=['z'] + variables)
-            # df.to_csv('sharp_R2_1200_1e-3_raw.csv', index=False)
-            # df = pd.DataFrame(np.vstack((z_physical, yp)).T, columns=['z'] + variables)
-            # df.to_csv(f'{self.params.case_name}_{self.params.H0:.1f}-{self.params.HH:.1f}m_1e-5_yp_raw.csv', index=False)
-
-            self.results = {
-                "case_name": self.params.case_name,
-                "H0": z_physical[0],
-                "HH": z_physical[-1],
-                "T_out": y_physical[0,0],
-                "t_out": y_physical[1,-1],
-                "fs_out": y_physical[2,-1],
-                "fl_out": y_physical[3,-1],
-                "x_out": y_physical[4,0],
-                "y_out": y_physical[5,0],
-                "w_out": y_physical[6,0],    
-                "rhob_out": y_physical[7,-1],    
-                "p_bottom": y_physical[8,-1]
-            }
-
-            return self.results
-        else:
-            raise RuntimeError("求解失败")
-        
+     
 
 class HCFurnaceModel(FurnaceModel):
     """

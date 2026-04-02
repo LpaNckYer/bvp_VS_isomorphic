@@ -21,9 +21,9 @@ def multi_value_interpolation(x_control, y_control, num_output_points=2000):
     return x_output, y_output
 
 from main import load_parameters
-from furnace_model import NormalizedFurnaceModel
+from furnace_model import FurnaceModel
 params = load_parameters("my_design")   # 调用已保存的参数（由 save_load 统一管理路径）
-model = NormalizedFurnaceModel(params)
+model = FurnaceModel(params)
 
 # 1. 初值设置（分段线性）
 H0 = model.params.H0

@@ -4,7 +4,7 @@ import itertools
 import numpy as np
 import pandas as pd
 
-from furnace_model import FurnaceModel, NormalizedFurnaceModel
+from furnace_model import FurnaceModel
 from parameters import create_standard_case, quick_modify
 from paths import REPO_ROOT, cases_path, ensure_dirs
 
@@ -316,13 +316,11 @@ def main():
     parser_sens.add_argument('--param', required=True, help='要分析的参数名，例如 U, epsilon')
     parser_sens.add_argument('--values', required=True, help='参数值列表，用逗号分隔，例如 8,9,10,11,12')
     parser_sens.add_argument('--reference', help='参考结果CSV文件路径')
-    parser_sens.add_argument('--model', choices=['physical', 'normalized'], default='physical', help='使用模型类型')
     parser_sens.add_argument('--output', help='敏感度结果输出CSV路径')
 
     parser_grid = subparsers.add_parser('grid', help='参数组合网格搜索')
     parser_grid.add_argument('--params', required=True, nargs='+', help='参数网格规格，例如 U=8,9,10 epsilon=0.20,0.22')
     parser_grid.add_argument('--reference', help='参考结果CSV文件路径')
-    parser_grid.add_argument('--model', choices=['physical', 'normalized'], default='physical', help='使用模型类型')
     parser_grid.add_argument('--output', help='网格搜索结果输出CSV路径')
     parser_grid.add_argument('--max_cases', type=int, help='最大求解数量')
 
@@ -343,14 +341,13 @@ def main():
         return
 
     base_params = create_standard_case('default')
-    model_class = NormalizedFurnaceModel if getattr(args, 'model', None) == 'normalized' else FurnaceModel
 
     if args.command == 'sensitivity':
         values = parse_value_list(args.values)
         df = run_parameter_sensitivity(base_params,
                                        args.param,
                                        values,
-                                       model_class=model_class,
+                                       model_class=FurnaceModel,
                                        reference_path=args.reference,
                                        output_csv=args.output)
         print(df)
@@ -358,7 +355,7 @@ def main():
         param_grid = parse_param_grid(args.params)
         df = run_parameter_grid_search(base_params,
                                       param_grid,
-                                      model_class=model_class,
+                                      model_class=FurnaceModel,
                                       reference_path=args.reference,
                                       output_csv=args.output,
                                       max_cases=args.max_cases)

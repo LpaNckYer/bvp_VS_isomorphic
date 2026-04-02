@@ -319,7 +319,7 @@ def main():
             z_hc, state_hc = model_hc._build_initial_guess()
             t1 = time.perf_counter()
             try:
-                state_out = converge_full(model_hc, z_hc, state_hc)
+                state_out, _ = converge_full(model_hc, z_hc, state_hc)
                 status_hc = "success"
                 rmse_hc = rmse_vs_reference(ref_df, z_hc, state_out)
             except Exception as e:

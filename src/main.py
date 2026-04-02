@@ -11,7 +11,7 @@ from scipy.integrate import solve_bvp
 from numpy.linalg import norm
 
 from parameters import create_standard_case, quick_modify
-from furnace_model import NormalizedFurnaceModel, HCFurnaceModel
+from furnace_model import FurnaceModel, HCFurnaceModel
 from save_load import save_parameters, load_parameters, list_saved_cases
 from batch_run import run_batch_study
 
@@ -25,8 +25,8 @@ def run_single_case(case_name="default_case", save_case=False):
     # # 1. 标准算例
     # print("\n1. 标准算例")
     # params1 = create_standard_case(case_name)
-    # model1 = NormalizedFurnaceModel(params1)
-    # results1 = model1.solve_normalized()
+    # model1 = FurnaceModel(params1)
+    # results1 = model1.run()
     # if save_case:
     #     save_parameters(params1)
     # print(f"结果: 出口还原度 {results1['fs_out']:.3f}")
@@ -38,8 +38,8 @@ def run_single_case(case_name="default_case", save_case=False):
     #                      case_name="my_design",
     #                      epsilon=0.23,
     #                      T_we = 32 + 273)
-    # model2 = NormalizedFurnaceModel(params2)
-    # results2 = model2.solve_normalized()
+    # model2 = FurnaceModel(params2)
+    # results2 = model2.run()
     # if save_case:
     #     save_parameters(params2)
     # print(f"结果: 出口还原度 {results2['fs_out']:.3f}")
@@ -47,8 +47,8 @@ def run_single_case(case_name="default_case", save_case=False):
     # 3. 初值残差测试
     print("\n3. 初值残差测试")
     params = load_parameters(case_name)
-    model3 = NormalizedFurnaceModel(params)
-    results3 = model3.init_test()
+    model3 = FurnaceModel(params)
+    results3 = model3.run()
     print(f"结果: 出口还原度 {results3['fs_out']:.3f}")
 
 
@@ -64,16 +64,15 @@ def run_saved_case(case_name):
         return
     
     print(f"找到 {len(cases)} 个已保存算例:")
-    for i, case_name in enumerate(cases[:3], 1):  # 只显示前3个
-        print(f"{i}. {case_name}")
-        print(results)  # 打印结果
+    for i, name in enumerate(cases[:3], 1):  # 只显示前3个
+        print(f"{i}. {name}")
     try:
         params = load_parameters(case_name)
-        model = NormalizedFurnaceModel(params)
-        results = model.solve_normalized()
-        
+        model = FurnaceModel(params)
+        results = model.run()
+        print(results)
     except Exception as e:
-        print(f"{i}. {case_name}: 加载失败 - {e}")
+        print(f"加载/运行失败 ({case_name}): {e}")
 
 def demo_batch_study():
     """演示批量运行"""
@@ -336,6 +335,7 @@ def converge_ttx_yfl(model, z, state):
 
 
 def converge_full(model, z, state):
+    """返回 (state, converged)。converged 表示外循环在容差内结束，而非触顶 MAX_OUTER_LOOP。"""
     for i in range(MAX_OUTER_LOOP):
         logging.info(f"[outer {i+1}/{MAX_OUTER_LOOP}] start")
         state = converge_ttx_yfl(model, z, state)
@@ -354,12 +354,12 @@ def converge_full(model, z, state):
         if (err_w < TOL_W and err_fs < TOL_FS
                 and err_p < TOL_P and err_rhob < TOL_RHOB):
             logging.info(f"outer loop converged at iter {i+1}")
-            return next_state
+            return next_state, True
 
         state = next_state
 
     logging.warning("outer loop hit max iterations")
-    return state
+    return state, False
 
 def test_hc_5n4():
     logging.info("测试 hc_5n4")
@@ -369,7 +369,7 @@ def test_hc_5n4():
 
     z_guess, state = model._build_initial_guess()
 
-    state = converge_full(model, z_guess, state)
+    state, _ = converge_full(model, z_guess, state)
 
     # y_plot 均保持和原来兼容顺序
     variables = ['T', 't', 'fs', 'fl', 'x', 'y', 'w', 'rhob', 'p']
