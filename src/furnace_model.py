@@ -18,6 +18,8 @@ class FurnaceModel:
     def __init__(self, parameters):
         self.params = parameters
         self.results = {}
+        # 归一化/诊断用：把 solve_bvp 的 verbose 提到 2 来观察进度
+        self.bvp_verbose = 0
 
     def run(self):
         """运行模型"""
@@ -28,8 +30,13 @@ class FurnaceModel:
 
         final_sol, history = self._solve_with_decreasing_tol(
             self.blast_furnace_bvp, self.bc, [self.params.H0, self.params.HH], y_guess,
-            tol_levels=[1e-1, 1e-2, 1e-3]
+            tol_levels=[1e-1, 1e-2, 1e-3],
+            verbose=self.bvp_verbose,
         )
+
+        # keep diagnostic info for downstream tests (e.g., 网格无关性)
+        self._last_bvp_history = history
+        self._last_bvp_solution = final_sol
 
         self._log_history(history)
         self._plot_and_save_results(final_sol, z_guess)
@@ -66,7 +73,15 @@ class FurnaceModel:
         z_guess = np.linspace(self.params.H0, self.params.HH, self.params.initial_mesh)
         return z_guess, state
 
-    def _solve_with_decreasing_tol(self, ode, bc, x_span, y_init, tol_levels=None):
+    def _solve_with_decreasing_tol(
+        self,
+        ode,
+        bc,
+        x_span,
+        y_init,
+        tol_levels=None,
+        verbose: int = 0,
+    ):
         """逐步减小容差求解BVP"""
         if tol_levels is None:
             tol_levels = [1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6]
@@ -76,13 +91,34 @@ class FurnaceModel:
 
         for i, tol in enumerate(tol_levels):
             logging.info(f"第 {i+1} 轮迭代，容差: {tol}")
-            sol = solve_bvp(ode, bc, x, y_init, tol=tol, max_nodes=len(x)*20, verbose=0)
+            sol = solve_bvp(
+                ode,
+                bc,
+                x,
+                y_init,
+                tol=tol,
+                max_nodes=len(x) * 20,
+                verbose=verbose,
+            )
+
+            # diagnostics: equation residual + boundary residual
+            try:
+                max_rms = float(np.max(getattr(sol, "rms_residuals", np.array([np.nan]))))
+            except Exception:
+                max_rms = float("nan")
+            try:
+                bc_resid = bc(sol.y[:, 0], sol.y[:, -1])
+                bc_l2 = float(norm(bc_resid))
+            except Exception:
+                bc_l2 = float("nan")
 
             history.append({
                 'tol': tol,
                 'solution': sol,
                 'success': sol.success,
-                'n_nodes': len(sol.x)
+                'n_nodes': len(sol.x),
+                'max_rms_residual': max_rms,
+                'bc_l2_residual': bc_l2,
             })
 
             if not sol.success:
@@ -96,7 +132,15 @@ class FurnaceModel:
         """记录迭代历史"""
         logging.info("=== 迭代历史 ===")
         for i, record in enumerate(history):
-            logging.info(f"轮次 {i+1}: 容差={record['tol']:.1e}, 节点数={record['n_nodes']}, 成功={record['success']}")
+            logging.info(
+                "轮次 %d: 容差=%.1e, 节点数=%s, 成功=%s, max_rms=%s, bc_l2=%s",
+                i + 1,
+                record.get("tol"),
+                record.get("n_nodes"),
+                record.get("success"),
+                record.get("max_rms_residual"),
+                record.get("bc_l2_residual"),
+            )
 
     def _plot_and_save_results(self, sol, z_guess):
         """绘制并保存结果"""
@@ -115,10 +159,19 @@ class FurnaceModel:
         df = pd.DataFrame(np.vstack((z_guess, y_plot)).T, columns=['z'] + variables)
         df.to_csv(f'{self.params.case_name}_{self.params.H0:.1f}-{self.params.HH:.1f}m.csv', index=False)
 
+        history = getattr(self, "_last_bvp_history", None) or []
+        last_record = history[-1] if history else {}
+
         self.results = {
             "case_name": self.params.case_name,
             "H0": z_guess[0],
             "HH": z_guess[-1],
+            # solve_bvp success flag (helps判断“是否收敛”)
+            "bvp_success": bool(getattr(sol, "success", False)),
+            "bvp_tol_final": last_record.get("tol"),
+            "bvp_n_nodes_final": len(getattr(sol, "x", [])),
+            "bvp_max_rms_residual_final": last_record.get("max_rms_residual"),
+            "bvp_bc_l2_residual_final": last_record.get("bc_l2_residual"),
             "T_out": y_plot[0, 0],
             "t_out": y_plot[1, -1],
             "fs_out": y_plot[2, -1],
@@ -1357,7 +1410,8 @@ class NormalizedFurnaceModel(FurnaceModel):
 
         sol_norm, history = self._solve_with_decreasing_tol(
             self.normalized_bvp, self.normalized_bc, [H0_norm, HH_norm], y_guess_norm,
-            tol_levels=[1e-1, 1e-2, 1e-3]
+            tol_levels=[1e-1, 1e-2, 1e-3],
+            verbose=getattr(self, "bvp_verbose", 0),
         )
 
         self._log_history(history)

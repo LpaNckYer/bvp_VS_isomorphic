@@ -46,6 +46,13 @@ logging.basicConfig(
 
 STATE_VARS = ["T", "t", "fs", "fl", "x", "y", "w", "rhob", "p"]
 
+RESULTS_DIR = ROOT / "results"
+OUT_CONSTANT_INLET_CSV = RESULTS_DIR / "initial_convergence_constant_inlet_FurnaceModel.csv"
+
+# 仅跑“常数分布（9变量进口值）”测试，避免长时间扫描整批参考扰动算例。
+# 若要保留原来的全量扫描，把它设为 True。
+RUN_REFERENCE_SCALE_TESTS = False
+
 
 def load_reference_control_points(
     csv_path: Path,
@@ -95,6 +102,25 @@ def params_with_controls(
     p.case_name = case_name
     p.value0, p.value1, p.value2, p.value3, p.valueH = deepcopy(controls)
     return p
+
+
+def build_constant_inlet_controls(base: FurnaceParameters) -> list[list[float]]:
+    """
+    用“9个边界/进口值”构造常数分布初值：
+    value0..valueH 都取同一个向量 [T_in, t_in, fs_in, fl_in, x_in, y_in, w_in, rhob_in, p_in]。
+    """
+    inlet = [
+        base.T_in,
+        base.t_in,
+        base.fs_in,
+        base.fl_in,
+        base.x_in,
+        base.y_in,
+        base.w_in,
+        base.rhob_in,
+        base.p_in,
+    ]
+    return [list(inlet) for _ in range(5)]
 
 
 def rmse_vs_reference(
@@ -149,6 +175,7 @@ def main():
     ensure_dirs()
     OUT_CSV.parent.mkdir(parents=True, exist_ok=True)
     TMP_RUN.mkdir(parents=True, exist_ok=True)
+    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
     base = FurnaceParameters()
     base.U = 10.0
@@ -158,6 +185,69 @@ def main():
 
     ref_df = pd.read_csv(REF_CSV)
     base_controls = load_reference_control_points(REF_CSV, base)
+
+    # ===== 常数分布（9变量进口值）测试 FurnaceModel.run 是否收敛 =====
+    constant_inlet_controls = build_constant_inlet_controls(base)
+    constant_case_name = "ic_constant_inlet_bvp"
+    params_constant = params_with_controls(base, constant_inlet_controls, constant_case_name)
+    # 常数进口值初值可能较“远”，为保证测试能在可接受时间内完成，
+    # 这里为该测试单独降低初始网格规模（不影响其它参考扰动算例）。
+    params_constant.initial_mesh = 2000
+    model_constant = FurnaceModel(params_constant)
+    # 建议：把 BVP 求解器 verbose 提到 2，便于你观察 `solve_bvp` 内部迭代进度。
+    model_constant.bvp_verbose = 2
+
+    cwd = os.getcwd()
+    try:
+        os.chdir(TMP_RUN)
+        t0_const = time.perf_counter()
+        status_const = "success"
+        rmse_const: dict[str, float] = {}
+        try:
+            model_constant.run()
+        except Exception as e:
+            status_const = f"fail: {e}"
+
+        elapsed_const = time.perf_counter() - t0_const
+
+        sol_path_const = (
+            TMP_RUN / f"{constant_case_name}_{params_constant.H0:.1f}-{params_constant.HH:.1f}m.csv"
+        )
+        if sol_path_const.is_file() and status_const == "success":
+            sol_df = pd.read_csv(sol_path_const)
+            z_sol = sol_df["z"].to_numpy(dtype=float)
+            state_d = {k: sol_df[k].to_numpy(dtype=float) for k in STATE_VARS}
+            rmse_const = rmse_vs_reference(ref_df, z_sol, state_d)
+
+        row_const = {
+            "case_type": "constant_inlet",
+            "model": "FurnaceModel",
+            "status": status_const,
+            "elapsed_s": elapsed_const,
+            "bvp_success": model_constant.results.get("bvp_success") if hasattr(model_constant, "results") else None,
+            "initial_mesh": params_constant.initial_mesh,
+            "solution_csv": str(sol_path_const),
+            **{f"{k}_in": getattr(base, f"{k}_in") for k in ["T", "t", "fs", "fl", "x", "y", "w", "rhob", "p"]},
+            **rmse_const,
+        }
+        pd.DataFrame([row_const]).to_csv(OUT_CONSTANT_INLET_CSV, index=False)
+
+        print(
+            f"常数进口值测试完成：status={row_const['status']}, "
+            f"bvp_success={row_const['bvp_success']} -> {OUT_CONSTANT_INLET_CSV}"
+        )
+        logging.info(
+            "Constant inlet test finished: status=%s, bvp_success=%s, elapsed=%.2fs, csv=%s",
+            row_const["status"],
+            row_const["bvp_success"],
+            row_const["elapsed_s"],
+            OUT_CONSTANT_INLET_CSV,
+        )
+
+        if not RUN_REFERENCE_SCALE_TESTS:
+            return
+    finally:
+        os.chdir(cwd)
 
     scales_1d = [0.75, 0.9, 1.0, 1.1, 1.25]
     rng = np.random.default_rng(0)
