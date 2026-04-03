@@ -15,11 +15,17 @@
   python scripts/test_grid_independence.py --mode bvp
   python scripts/test_grid_independence.py --mode hc_5n4 --meshes 2000,1000,500,300,200
   python scripts/test_grid_independence.py --mode hc_5n4 --hc-case my_design
+
+进程日志（BVP / HC 分文件）：
+  默认 logs/grid_independence_bvp.log 与 logs/grid_independence_hc_5n4.log；
+  可选 --progress-log 指定路径；--no-console-log 仅写文件。
+  FurnaceModel / main.converge_full 的 logging.info 会一并写入同一根 logger。
 """
 
 from __future__ import annotations
 
 import argparse
+import logging
 import os
 import sys
 import time
@@ -228,6 +234,22 @@ def parse_meshes(s: str | None) -> list[int]:
     return [int(x.strip()) for x in str(s).split(",") if x.strip()]
 
 
+def configure_progress_logging(log_file: Path, *, console: bool = True) -> None:
+    """根 logger：文件 + 可选控制台，便于观察 BVP/HC 全进程（含 main / furnace_model 的 INFO）。"""
+    log_file.parent.mkdir(parents=True, exist_ok=True)
+    fmt = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
+    root = logging.getLogger()
+    root.setLevel(logging.INFO)
+    root.handlers.clear()
+    fh = logging.FileHandler(log_file, encoding="utf-8")
+    fh.setFormatter(fmt)
+    root.addHandler(fh)
+    if console:
+        sh = logging.StreamHandler(sys.stderr)
+        sh.setFormatter(fmt)
+        root.addHandler(sh)
+
+
 def main():
     parser = argparse.ArgumentParser(description="网格无关性：BVP 或 HC(test_hc_5n4 路径)")
     parser.add_argument("--mode", choices=["bvp", "hc_5n4"], default="bvp")
@@ -247,12 +269,29 @@ def main():
         help="输出 CSV 路径；默认 logs/grid_independence_<mode>.csv",
     )
     parser.add_argument("--bvp-verbose", type=int, default=0, help="FurnaceModel.solve_bvp verbose")
+    parser.add_argument(
+        "--progress-log",
+        default=None,
+        help="运行过程文本日志；默认 logs/grid_independence_<mode>.log",
+    )
+    parser.add_argument(
+        "--no-console-log",
+        action="store_true",
+        help="仅写入进度日志文件，不重复打到 stderr",
+    )
     args = parser.parse_args()
 
     ensure_dirs()
     meshes = parse_meshes(args.meshes)
     log_csv = Path(args.log) if args.log else logs_path(f"grid_independence_{args.mode}.csv")
     log_csv.parent.mkdir(parents=True, exist_ok=True)
+    progress_log = (
+        Path(args.progress_log)
+        if args.progress_log
+        else logs_path(f"grid_independence_{args.mode}.log")
+    )
+    configure_progress_logging(progress_log, console=not args.no_console_log)
+
     tmp_dir = ROOT / "tmp" / f"grid_independence_runs_{args.mode}"
     tmp_dir.mkdir(parents=True, exist_ok=True)
 
@@ -263,18 +302,72 @@ def main():
         abs_le_fractions=3e-4,
     )
 
+    logging.info(
+        "grid_independence start: mode=%s meshes=%s csv=%s progress_log=%s tmp=%s",
+        args.mode,
+        meshes,
+        log_csv,
+        progress_log,
+        tmp_dir,
+    )
+    logging.info(
+        "criteria: max_rms<=%s bc_l2<=%s outlet_rel<=%s frac_abs<=%s",
+        criteria.max_rms_le,
+        criteria.bc_l2_le,
+        criteria.rel_le,
+        criteria.abs_le_fractions,
+    )
+
     rows: list[dict] = []
     if args.mode == "bvp":
         base = FurnaceParameters()
         base.U = 10.0
-        for m in meshes:
+        for idx, m in enumerate(meshes, start=1):
+            logging.info(
+                "[bvp %d/%d] initial_mesh=%s start (bvp_verbose=%s)",
+                idx,
+                len(meshes),
+                m,
+                args.bvp_verbose,
+            )
             rows.append(run_one_bvp(m, base, tmp_dir, bvp_verbose=args.bvp_verbose))
-            print(f"mesh={m:4d}  status={rows[-1]['status']}  elapsed={rows[-1]['elapsed_s']:.1f}s")
+            tail = rows[-1]
+            logging.info(
+                "[bvp %d/%d] initial_mesh=%s done status=%s elapsed=%.2fs bvp_success=%s "
+                "max_rms=%s bc_l2=%s T_out=%s t_out=%s",
+                idx,
+                len(meshes),
+                m,
+                tail["status"],
+                tail["elapsed_s"],
+                tail.get("bvp_success"),
+                tail.get("bvp_max_rms_residual_final"),
+                tail.get("bvp_bc_l2_residual_final"),
+                tail.get("T_out"),
+                tail.get("t_out"),
+            )
+            print(f"mesh={m:4d}  status={tail['status']}  elapsed={tail['elapsed_s']:.1f}s")
             pd.DataFrame(rows).to_csv(log_csv, index=False)
     else:
-        for m in meshes:
+        logging.info("[hc_5n4] hc_case=%s", args.hc_case)
+        for idx, m in enumerate(meshes, start=1):
+            logging.info("[hc_5n4 %d/%d] initial_mesh=%s start", idx, len(meshes), m)
             rows.append(run_one_hc_5n4(m, args.hc_case))
             tail = rows[-1]
+            logging.info(
+                "[hc_5n4 %d/%d] initial_mesh=%s done status=%s elapsed=%.2fs "
+                "hc_outer_converged=%s T_out=%s t_out=%s fs_out=%s p_bottom=%s",
+                idx,
+                len(meshes),
+                m,
+                tail["status"],
+                tail["elapsed_s"],
+                tail.get("hc_outer_converged"),
+                tail.get("T_out"),
+                tail.get("t_out"),
+                tail.get("fs_out"),
+                tail.get("p_bottom"),
+            )
             print(
                 f"mesh={m:4d}  status={tail['status']}  hc_outer={tail.get('hc_outer_converged')}  "
                 f"elapsed={tail['elapsed_s']:.1f}s"
@@ -288,9 +381,17 @@ def main():
             break
 
     if ref_row is None:
-        print("没有找到满足方程收敛判据的参考网格，请放宽判据、检查算例或调整 meshes 顺序（先大后小）。")
+        msg = "没有找到满足方程收敛判据的参考网格，请放宽判据、检查算例或调整 meshes 顺序（先大后小）。"
+        logging.warning("%s csv=%s", msg, log_csv)
+        print(msg)
         print(f"部分结果已写入 {log_csv}")
         return
+
+    logging.info(
+        "reference row: initial_mesh=%s solver=%s equation_converged=True",
+        ref_row.get("initial_mesh"),
+        ref_row.get("solver"),
+    )
 
     enriched = []
     for r in rows:
@@ -299,25 +400,43 @@ def main():
         rr.update(outlet_error_metrics(rr, ref_row))
         rr["solution_stable_vs_ref"] = is_solution_stable(rr, criteria)
         enriched.append(rr)
+        logging.info(
+            "summary mesh=%s eq_conv=%s stable=%s rel_diff_max=%.4e abs_diff_outlet_max=%.4e",
+            rr.get("initial_mesh"),
+            rr["equation_converged"],
+            rr["solution_stable_vs_ref"],
+            rr.get("rel_diff_outlet_max"),
+            rr.get("abs_diff_outlet_max"),
+        )
 
     df = pd.DataFrame(enriched)
     df.to_csv(log_csv, index=False)
 
     ok = df[(df["equation_converged"] == True) & (df["solution_stable_vs_ref"] == True)]
     if ok.empty:
-        print("没有找到同时满足“方程收敛 + 出口稳定”的网格，请放宽稳定性阈值或提高参考 mesh。")
+        msg = "没有找到同时满足“方程收敛 + 出口稳定”的网格，请放宽稳定性阈值或提高参考 mesh。"
+        logging.warning("%s csv=%s", msg, log_csv)
+        print(msg)
         print(f"结果已写入 {log_csv}")
         return
 
     recommended = int(ok.sort_values("initial_mesh").iloc[0]["initial_mesh"])
     ref_mesh = int(ref_row["initial_mesh"])
 
+    logging.info(
+        "done: mode=%s reference_mesh=%s recommended_min_mesh=%s csv=%s",
+        args.mode,
+        ref_mesh,
+        recommended,
+        log_csv,
+    )
     print()
     print("=== 网格无关性结论 ===")
     print(f"mode = {args.mode}")
     print(f"reference mesh = {ref_mesh} (满足方程收敛判据)")
     print(f"recommended minimal initial_mesh = {recommended}")
     print(f"详细结果：{log_csv}")
+    print(f"过程日志：{progress_log}")
 
 
 if __name__ == "__main__":

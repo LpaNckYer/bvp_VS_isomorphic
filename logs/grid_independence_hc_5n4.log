@@ -1,0 +1,84 @@
+2026-04-03 08:10:13,087 [INFO] grid_independence start: mode=hc_5n4 meshes=[100] csv=D:\Group\HyOCR\20260130\logs\grid_independence_hc_5n4.csv progress_log=D:\Group\HyOCR\20260130\logs\grid_independence_hc_5n4.log tmp=D:\Group\HyOCR\20260130\tmp\grid_independence_runs_hc_5n4
+2026-04-03 08:10:13,087 [INFO] criteria: max_rms<=0.001 bc_l2<=1e-06 outlet_rel<=0.001 frac_abs<=0.0003
+2026-04-03 08:10:13,087 [INFO] [hc_5n4] hc_case=my_design
+2026-04-03 08:10:13,087 [INFO] [hc_5n4 1/1] initial_mesh=100 start
+2026-04-03 08:10:13,088 [INFO] [outer 1/10000] start
+2026-04-03 08:10:14,795 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=6.687e-04, err_y=1.010e-03, err_fl=8.723e-04
+2026-04-03 08:10:16,478 [INFO] inner loop converged at iter 2
+2026-04-03 08:10:16,489 [INFO] [outer 1] err_w=8.496e-04, err_fs=5.996e-04, err_p=4.657e-02, err_rhob=9.416e-03
+2026-04-03 08:10:16,489 [INFO] [outer 2/10000] start
+2026-04-03 08:10:18,135 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=4.535e-04, err_y=7.378e-04, err_fl=8.467e-04
+2026-04-03 08:10:18,135 [INFO] inner loop converged at iter 1
+2026-04-03 08:10:18,146 [INFO] [outer 2] err_w=5.300e-04, err_fs=5.822e-04, err_p=9.798e-02, err_rhob=6.064e-03
+2026-04-03 08:10:18,146 [INFO] [outer 3/10000] start
+2026-04-03 08:10:19,828 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=6.252e-04, err_y=1.316e-03, err_fl=7.196e-04
+2026-04-03 08:10:21,500 [INFO] inner loop converged at iter 2
+2026-04-03 08:10:21,508 [INFO] [outer 3] err_w=9.428e-04, err_fs=5.649e-04, err_p=2.021e-02, err_rhob=4.902e-03
+2026-04-03 08:10:21,509 [INFO] [outer 4/10000] start
+2026-04-03 08:10:23,177 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=4.708e-04, err_y=9.369e-04, err_fl=5.220e-04
+2026-04-03 08:10:23,177 [INFO] inner loop converged at iter 1
+2026-04-03 08:10:23,185 [INFO] [outer 4] err_w=5.076e-04, err_fs=9.436e-04, err_p=1.011e-02, err_rhob=2.601e-03
+2026-04-03 08:10:23,186 [INFO] [outer 5/10000] start
+2026-04-03 08:10:24,861 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=7.091e-04, err_y=8.810e-04, err_fl=6.313e-04
+2026-04-03 08:10:24,861 [INFO] inner loop converged at iter 1
+2026-04-03 08:10:24,867 [INFO] [outer 5] err_w=5.233e-04, err_fs=9.080e-04, err_p=3.593e-03, err_rhob=2.965e-03
+2026-04-03 08:10:24,868 [INFO] [outer 6/10000] start
+2026-04-03 08:10:26,485 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=1.007e-03, err_y=4.264e-04, err_fl=8.597e-04
+2026-04-03 08:10:28,129 [INFO] inner loop converged at iter 2
+2026-04-03 08:10:28,137 [INFO] [outer 6] err_w=8.793e-04, err_fs=4.898e-04, err_p=3.436e-02, err_rhob=5.405e-03
+2026-04-03 08:10:28,137 [INFO] [outer 7/10000] start
+2026-04-03 08:10:29,776 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=1.357e-03, err_y=5.485e-04, err_fl=8.564e-04
+2026-04-03 08:10:31,432 [INFO] inner loop converged at iter 2
+2026-04-03 08:10:31,439 [INFO] [outer 7] err_w=6.135e-04, err_fs=5.837e-04, err_p=8.248e-03, err_rhob=4.037e-03
+2026-04-03 08:10:31,439 [INFO] [outer 8/10000] start
+2026-04-03 08:10:33,113 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=4.148e-04, err_y=9.519e-04, err_fl=7.027e-04
+2026-04-03 08:10:33,113 [INFO] inner loop converged at iter 1
+2026-04-03 08:10:33,120 [INFO] [outer 8] err_w=6.260e-04, err_fs=8.417e-04, err_p=3.065e-02, err_rhob=3.695e-03
+2026-04-03 08:10:33,120 [INFO] [outer 9/10000] start
+2026-04-03 08:10:34,790 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=4.952e-04, err_y=1.127e-03, err_fl=4.973e-04
+2026-04-03 08:10:36,401 [INFO] inner loop converged at iter 2
+2026-04-03 08:10:36,410 [INFO] [outer 9] err_w=4.981e-04, err_fs=5.058e-04, err_p=1.002e-01, err_rhob=1.731e-02
+2026-04-03 08:10:36,410 [INFO] [outer 10/10000] start
+2026-04-03 08:10:38,036 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=6.421e-04, err_y=1.089e-03, err_fl=9.065e-04
+2026-04-03 08:10:39,617 [INFO] inner loop converged at iter 2
+2026-04-03 08:10:39,628 [INFO] [outer 10] err_w=5.108e-04, err_fs=5.709e-04, err_p=1.249e-01, err_rhob=9.562e-03
+2026-04-03 08:10:39,628 [INFO] [outer 11/10000] start
+2026-04-03 08:10:41,208 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=5.741e-04, err_y=1.196e-03, err_fl=9.970e-04
+2026-04-03 08:10:42,791 [INFO] inner loop converged at iter 2
+2026-04-03 08:10:42,800 [INFO] [outer 11] err_w=9.699e-04, err_fs=8.259e-04, err_p=1.074e-02, err_rhob=5.540e-03
+2026-04-03 08:10:42,800 [INFO] [outer 12/10000] start
+2026-04-03 08:10:44,404 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=5.844e-04, err_y=9.189e-04, err_fl=4.475e-04
+2026-04-03 08:10:44,404 [INFO] inner loop converged at iter 1
+2026-04-03 08:10:44,412 [INFO] [outer 12] err_w=4.827e-04, err_fs=7.666e-04, err_p=7.592e-03, err_rhob=6.930e-03
+2026-04-03 08:10:44,412 [INFO] [outer 13/10000] start
+2026-04-03 08:10:46,019 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=4.384e-04, err_y=8.705e-04, err_fl=0.000e+00
+2026-04-03 08:10:46,020 [INFO] inner loop converged at iter 1
+2026-04-03 08:10:46,027 [INFO] [outer 13] err_w=3.449e-04, err_fs=5.144e-04, err_p=5.553e-03, err_rhob=4.134e-03
+2026-04-03 08:10:46,027 [INFO] [outer 14/10000] start
+2026-04-03 08:10:47,602 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=8.517e-04, err_y=8.979e-04, err_fl=9.755e-04
+2026-04-03 08:10:47,602 [INFO] inner loop converged at iter 1
+2026-04-03 08:10:47,609 [INFO] [outer 14] err_w=5.932e-04, err_fs=8.084e-04, err_p=8.090e-03, err_rhob=2.331e-03
+2026-04-03 08:10:47,609 [INFO] [outer 15/10000] start
+2026-04-03 08:10:49,211 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=5.987e-04, err_y=1.381e-03, err_fl=0.000e+00
+2026-04-03 08:11:06,203 [INFO] grid_independence start: mode=hc_5n4 meshes=[500] csv=D:\Group\HyOCR\20260130\logs\grid_independence_hc_5n4.csv progress_log=D:\Group\HyOCR\20260130\logs\grid_independence_hc_5n4.log tmp=D:\Group\HyOCR\20260130\tmp\grid_independence_runs_hc_5n4
+2026-04-03 08:11:06,203 [INFO] criteria: max_rms<=0.001 bc_l2<=1e-06 outlet_rel<=0.001 frac_abs<=0.0003
+2026-04-03 08:11:06,203 [INFO] [hc_5n4] hc_case=my_design
+2026-04-03 08:11:06,203 [INFO] [hc_5n4 1/1] initial_mesh=500 start
+2026-04-03 08:11:06,204 [INFO] [outer 1/10000] start
+2026-04-03 08:11:28,728 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=5.185e-04, err_y=7.687e-04, err_fl=5.894e-04
+2026-04-03 08:11:28,729 [INFO] inner loop converged at iter 1
+2026-04-03 08:11:28,829 [INFO] [outer 1] err_w=6.291e-04, err_fs=2.809e-04, err_p=7.141e-02, err_rhob=2.204e-02
+2026-04-03 08:11:28,829 [INFO] [outer 2/10000] start
+2026-04-03 08:11:51,237 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=5.112e-04, err_y=9.384e-04, err_fl=7.238e-04
+2026-04-03 08:11:51,238 [INFO] inner loop converged at iter 1
+2026-04-03 08:11:51,299 [INFO] [outer 2] err_w=9.258e-04, err_fs=4.469e-04, err_p=2.011e-02, err_rhob=6.418e-03
+2026-04-03 08:11:51,300 [INFO] [outer 3/10000] start
+2026-04-03 08:12:13,377 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=6.623e-04, err_y=4.150e-04, err_fl=4.976e-04
+2026-04-03 08:12:13,377 [INFO] inner loop converged at iter 1
+2026-04-03 08:12:13,443 [INFO] [outer 3] err_w=7.302e-04, err_fs=5.703e-04, err_p=3.387e-02, err_rhob=5.652e-03
+2026-04-03 08:12:13,444 [INFO] [outer 4/10000] start
+2026-04-03 08:12:36,007 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=5.239e-04, err_y=1.043e-03, err_fl=6.240e-04
+2026-04-03 08:12:59,274 [INFO] inner loop converged at iter 2
+2026-04-03 08:12:59,329 [INFO] [outer 4] err_w=4.951e-04, err_fs=7.160e-04, err_p=4.650e-03, err_rhob=4.124e-03
+2026-04-03 08:12:59,329 [INFO] [outer 5/10000] start
+2026-04-03 08:13:22,518 [INFO] [inner 1/100] err_T=0.000e+00, err_t=0.000e+00, err_x=5.406e-04, err_y=1.137e-03, err_fl=7.760e-04
